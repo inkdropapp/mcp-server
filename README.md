@@ -2,7 +2,8 @@
 
 A [Model Context Protocol](https://github.com/modelcontextprotocol) server for the [Inkdrop Local HTTP Server API](https://developers.inkdrop.app/data-access/local-http-server).
 
-> [!WARNING] This is highly experimental and use at your own risk.
+> [!WARNING]
+> This is highly experimental and use at your own risk.
 
 ## Installation
 
