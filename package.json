@@ -12,6 +12,10 @@
     "watch": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkdropapp/mcp-server.git"
+  },
   "keywords": [
     "Inkdrop",
     "MCP",
