@@ -1,6 +1,7 @@
 {
   "name": "@inkdropapp/mcp-server",
   "version": "1.0.0",
+  "description": "Inkdrop Model Context Protocol Server",
   "bin": {
     "inkdrop-mcp-server": "dist/index.js"
   },
@@ -11,10 +12,13 @@
     "watch": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "Inkdrop",
+    "MCP",
+    "Claude"
+  ],
+  "author": "Takuya Matsuyama<contact@inkdrop.app>",
   "license": "MIT",
-  "description": "",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "ajv": "^8.17.1",

@@ -19,7 +19,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
       "command": "npx",
       "args": [
         "-y",
-        "inkdrop-mcp-server"
+        "@inkdropapp/mcp-server"
       ],
       "env": {
         "INKDROP_LOCAL_SERVER_URL": "http://localhost:19840",
