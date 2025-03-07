@@ -1,80 +1,28 @@
 #!/usr/bin/env node
 
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { Book, Note } from "inkdrop-model";
-import { z } from "zod";
-
-const config = {
-  baseUrl: process.env.INKDROP_LOCAL_SERVER_URL,
-  username: process.env.INKDROP_LOCAL_USERNAME,
-  password: process.env.INKDROP_LOCAL_PASSWORD,
-};
-
-function getAuthHeaders() {
-  const token = Buffer.from(`${config.username}:${config.password}`).toString(
-    "base64"
-  );
-  return {
-    Authorization: `Basic ${token}`
-  };
-}
-
-/** Helper to attach query parameters to a given path */
-function buildUrl(path: string, qs: Record<string, any> = {}): string {
-  const url = new URL(path, config.baseUrl);
-  for (const [k, v] of Object.entries(qs)) {
-    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
-  }
-  return url.toString();
-}
-
-/** Helper to do a GET request and return JSON or throw an error. */
-async function fetchJSON<T = any>(path: string, qs: Record<string, any> = {}): Promise<T> {
-  const url = buildUrl(path, qs);
-  const resp = await fetch(url, { headers: getAuthHeaders() });
-  if (!resp.ok) {
-    throw new Error(`Fetch error [${resp.status}] ${resp.statusText}`);
-  }
-  return await resp.json() as T;
-}
-
+import {
+  McpServer,
+  ResourceTemplate
+} from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { Note, NoteSchema, Book, BookSchema } from 'inkdrop-model'
+import { z } from 'zod'
+import { fetchJSON, postJSON } from './api'
 
 const server = new McpServer({
-  name: "Inkdrop",
-  version: "1.0.0"
-});
-
-
-server.resource(
-  "books",
-  "inkdrop://books",
-  {
-    description: "List of all notebooks",
-    mimeType: 'application/json'
-  },
-  async (uri) => {
-    const body: Book[] = await fetchJSON("/books");
-    return {
-      contents: [
-        {
-          uri: uri.href,
-          text: JSON.stringify(body, null, 2)
-        }
-      ]
-    };
-  }
-);
+  name: 'Inkdrop',
+  version: '1.0.0'
+})
 
 server.resource(
-  "note",
-  new ResourceTemplate("inkdrop://note/{noteId}", { list: undefined }),
+  'note',
+  new ResourceTemplate('inkdrop://note/{noteId}', { list: undefined }),
   {
-    description: "A note data",
+    description: 'A note data',
     mimeType: 'application/json'
   },
   async (uri, { noteId }) => {
-    const note: Note[] = await fetchJSON(`/${noteId}`, {});
+    const note: Note[] = await fetchJSON(`/${noteId}`, {})
     return {
       contents: [
         {
@@ -83,32 +31,38 @@ server.resource(
           mimeType: 'application/json'
         }
       ]
-    };
+    }
   }
-);
+)
 
 server.tool(
-  "read-note",
-  "Retrieve the complete contents of the note by its ID from the database.",
+  'read-note',
+  'Retrieve the complete contents of the note by its ID from the database.',
   {
-    noteId: z.string().describe("ID of the note to retrieve. It can be found as `_id` in the note docs")
+    noteId: z
+      .string()
+      .describe(
+        'ID of the note to retrieve. It can be found as `_id` in the note docs'
+      )
   },
   async ({ noteId }) => {
-    const note: Note[] = await fetchJSON(`/${noteId}`, {});
+    const note: Note[] = await fetchJSON(`/${noteId}`, {})
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(note, null, 2),
+          text: JSON.stringify(note, null, 2)
         }
       ]
-    };
+    }
   }
-);
+)
 
 server.tool(
-  "search-notes",
-  `List all notes that contain a given keyword. The result does not include full note bodies, so you have to retrieve the full note content by calling inkdrop://note/{noteId} resource.
+  'search-notes',
+  `List all notes that contain a given keyword.
+The result does not include entire note bodies as they are truncated in 200 characters.
+You have to retrieve the full note content by calling \`read-note\`.
 Here are tips to specify keywords effectively:
 
 ## Use special qualifiers to narrow down results
@@ -174,13 +128,12 @@ Note that you can't specify excluding modifiers only without including condition
     keyword: z.string().describe(`Keyword to search for.`)
   },
   async ({ keyword }) => {
-    const notes: Note[] = await fetchJSON("/notes", { keyword, limit: 10 });
+    const notes: Note[] = await fetchJSON('/notes', { keyword, limit: 10 })
     const summaries = notes.map(note => {
       return {
         ...note,
-        body: undefined,
-        summary: note.body.substring(0, 200)
-      };
+        body: note.body.substring(0, 200)
+      }
     })
     return {
       content: [
@@ -189,13 +142,117 @@ Note that you can't specify excluding modifiers only without including condition
           text: JSON.stringify(summaries, null, 2)
         }
       ]
-    };
+    }
   }
-);
+)
+
+server.tool(
+  'create-note',
+  'Create a new note in the database',
+  {
+    bookId: z
+      .string()
+      .min(5)
+      .max(128)
+      .regex(/^(book:|trash$)/)
+      .describe('The notebook ID'),
+
+    title: z.string().max(128).describe('The note title'),
+
+    body: z
+      .string()
+      .max(1048576)
+      .describe('The content of the note represented with Markdown'),
+
+    status: z
+      .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
+      .optional()
+      .describe('The status of the note')
+  },
+  async noteData => {
+    const res = await postJSON(`/notes`, noteData)
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.tool(
+  'update-note',
+  'Update the existing note in the database',
+  {
+    _id: z
+      .string()
+      .min(6)
+      .max(128)
+      .regex(/^note:/)
+      .describe(
+        'The unique document ID which should start with `note:` and the remains are randomly generated string'
+      ),
+
+    _rev: z
+      .string()
+      .describe(
+        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+      ),
+
+    bookId: z
+      .string()
+      .min(5)
+      .max(128)
+      .regex(/^(book:|trash$)/)
+      .describe('The notebook ID'),
+
+    title: z.string().max(128).describe('The note title'),
+
+    body: z
+      .string()
+      .max(1048576)
+      .describe('The content of the note represented with Markdown'),
+
+    status: z
+      .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
+      .optional()
+      .describe('The status of the note')
+  },
+  async noteData => {
+    const res = await postJSON(`/notes`, noteData)
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.tool(
+  'list-notebooks',
+  `Retrieve a list of all notebooks`,
+  {},
+  async () => {
+    const books: Book[] = await fetchJSON('/books')
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(books, null, 2)
+        }
+      ]
+    }
+  }
+)
 
 server.prompt(
-  "inkdrop-prompt",
-  "Instructions for using the Inkdrop MCP server effectively",
+  'inkdrop-prompt',
+  'Instructions for using the Inkdrop MCP server effectively',
   () => ({
     messages: [
       {
@@ -215,6 +272,17 @@ Best practices:
   - Use specific, targeted queries for better results (e.g., "auth mobile app" rather than just "auth")
   - Apply relevant filters when asked or when you can infer the appropriate filters to narrow results
   - Use \`read-note\` to get the full note content
+
+Model schemas:
+
+\`\`\`json
+${JSON.stringify(NoteSchema, null, 2)}
+\`\`\`
+
+\`\`\`json
+${JSON.stringify(BookSchema, null, 2)}
+\`\`\`
+
 `
         }
       }
@@ -223,13 +291,13 @@ Best practices:
 )
 
 async function runServer() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  const transport = new StdioServerTransport()
+  await server.connect(transport)
 
-  console.error("Secure MCP Inkdrop Server running on stdio");
+  console.error('Secure MCP Inkdrop Server running on stdio')
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error running server:", error);
-  process.exit(1);
-});
+runServer().catch(error => {
+  console.error('Fatal error running server:', error)
+  process.exit(1)
+})
