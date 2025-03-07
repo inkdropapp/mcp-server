@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "lib": [
+      "es2024"
+    ],
+    "stripInternal": true,
+    "noUnusedLocals": false,
+    "strict": true,
+    "target": "es2024",
+    "module": "nodenext",
+    "newLine": "lf",
+    "moduleResolution": "nodenext",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "declaration": false
+  },
+  "include": [
+    "src/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
+}
