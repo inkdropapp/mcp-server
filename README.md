@@ -5,6 +5,10 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
 > [!WARNING]
 > This is highly experimental and use at your own risk.
 
+<a href="https://glama.ai/mcp/servers/c7fgtnckbv">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/c7fgtnckbv/badge" alt="Inkdrop Server MCP server" />
+</a>
+
 ## Installation
 
 1. [Set up a local HTTP server](https://developers.inkdrop.app/guides/access-the-local-database#accessing-via-http-advanced)
@@ -24,7 +28,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
       ],
       "env": {
         "INKDROP_LOCAL_SERVER_URL": "http://localhost:19840",
-        "INKDROP_LOCAL_USERNAME": "your-local-server-username"
+        "INKDROP_LOCAL_USERNAME": "your-local-server-username",
         "INKDROP_LOCAL_PASSWORD": "your-local-server-password"
       }
     }
