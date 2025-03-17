@@ -5,7 +5,7 @@ import {
   ResourceTemplate
 } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { Note, NoteSchema, Book, BookSchema } from 'inkdrop-model'
+import { Note, NoteSchema, Book, BookSchema, TagSchema } from 'inkdrop-model'
 import { z } from 'zod'
 import { fetchJSON, postJSON } from './api'
 
@@ -73,6 +73,8 @@ You can use special qualifiers to get more accurate results. See the qualifiers 
 - **book**  
   \`book:Blog\`: Searches for notes in the 'Blog' notebook.
   \`book:"Desktop App"\`: Searches for notes in the 'Desktop App' notebook.
+- **bookId**
+  \`bookId:kGlLniaV\`: Searches for notes in the notebook ID 'book:kGlLniaV'.
 - **tag**  
   \`tag:JavaScript\`: Searches for all notes having the 'JavaScript' tag. Read more about [tags](https://docs.inkdrop.app/manual/write-notes#tag-notes).
 - **status**  
@@ -131,6 +133,64 @@ Note that you can't specify excluding modifiers only without including condition
   },
   async ({ keyword }) => {
     const notes: Note[] = await fetchJSON('/notes', { keyword, limit: 10 })
+    const summaries = notes.map(note => {
+      return {
+        ...note,
+        body: note.body.substring(0, 200)
+      }
+    })
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(summaries, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.tool(
+  'list-notes',
+  `List all notes in a specified notebook with ID.
+The result does not include entire note bodies as they are truncated in 200 characters.
+You have to retrieve the full note content by calling \`read-note\`.
+`,
+  {
+    bookId: z
+      .string()
+      .describe(
+        `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\``
+      ),
+    tagIds: z
+      .array(z.string())
+      .optional()
+      .default([])
+      .describe(
+        `An array of tag IDs to filter. It always starts with 'tag:'. You can retrieve a list of available tags from \`list-tags\`.`
+      ),
+    keyword: z.string().optional().describe(`Keyword to filter notes`),
+    sort: z
+      .enum(['updatedAt', 'createdAt', 'title'])
+      .optional()
+      .default('updatedAt')
+      .describe(`Sort the documents by the specified field`),
+    descending: z
+      .boolean()
+      .optional()
+      .default(true)
+      .describe(`Reverse the order of the output documents`)
+  },
+  async ({ bookId, tagIds, keyword, sort, descending }) => {
+    const bookFilter = `bookId:${bookId.split(':')[1]}`
+    const tagFilter = tagIds ? tagIds.map(t => `tagId:${t}`).join(' ') : ''
+    keyword = `${bookFilter} ${tagFilter} ${keyword || ''}`.trim()
+    const notes: Note[] = await fetchJSON('/notes', {
+      keyword,
+      sort,
+      descending,
+      limit: 100
+    })
     const summaries = notes.map(note => {
       return {
         ...note,
@@ -301,6 +361,9 @@ ${JSON.stringify(NoteSchema, null, 2)}
 ${JSON.stringify(BookSchema, null, 2)}
 \`\`\`
 
+\`\`\`json
+${JSON.stringify(TagSchema, null, 2)}
+\`\`\`
 `
         }
       }
