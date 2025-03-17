@@ -280,6 +280,8 @@ Key capabilities:
 - Search notes by keyword
 - Get a note by its ID
 - Get a list of all notebooks
+- Create a new note
+- Update an existing note
 
 Best practices:
 - When searching:
