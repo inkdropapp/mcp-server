@@ -22,7 +22,7 @@
     "Claude"
   ],
   "author": "Takuya Matsuyama<contact@inkdrop.app>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "ajv": "^8.17.1",
