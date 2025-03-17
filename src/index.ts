@@ -42,10 +42,11 @@ server.tool(
     noteId: z
       .string()
       .describe(
-        'ID of the note to retrieve. It can be found as `_id` in the note docs'
+        'ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
       )
   },
   async ({ noteId }) => {
+    if (!noteId.startsWith('note:')) noteId = `note:${noteId}`
     const note: Note[] = await fetchJSON(`/${noteId}`, {})
     return {
       content: [
