@@ -38,25 +38,39 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
 
 1. **`read-note`**: Retrieve the complete contents of the note by its ID from the database.
    - Required inputs:
-     - `noteId`: The ID of the note to retrieve.
+     - `noteId`: The ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with `note:`.
 2. **`search-notes`**: List all notes that contain a given keyword.
    - Required inputs:
      - `keyword`: Keyword to search for.
-3. **`create-note`**: Create a new note in the database
+   - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
+   - Supports advanced search qualifiers like `book:`, `tag:`, `status:`, `title:`, etc.
+3. **`list-notes`**: List all notes in a specified notebook.
    - Required inputs:
-     - `bookId`: The notebook ID
-     - `title`: The note title
-     - `body`: The content of the note in Markdown
+     - `bookId`: The notebook ID. It always starts with 'book:'.
    - Optional inputs:
-     - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`)
-4. **`update-note`**: Update the existing note in the database
+     - `tagIds`: An array of tag IDs to filter. Each starts with 'tag:'.
+     - `keyword`: Keyword to filter notes.
+     - `sort`: Sort field (`updatedAt`, `createdAt`, or `title`). Default: `updatedAt`.
+     - `descending`: Reverse the order of output. Default: `true`.
+   - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
+4. **`create-note`**: Create a new note in the database.
    - Required inputs:
-     - `_id`: The note ID
-     - `_rev`: The revision ID
-     - `bookId`: The notebook ID
-     - `title`: The note title
-     - `body`: The content of the note in Markdown
-5. **`list-notebooks`**: Retrieve a list of all notebooks
+     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash'.
+     - `title`: The note title.
+     - `body`: The content of the note in Markdown.
+   - Optional inputs:
+     - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
+5. **`update-note`**: Update an existing note in the database.
+   - Required inputs:
+     - `_id`: The note ID. Must start with 'note:'.
+     - `_rev`: The revision ID (CouchDB MVCC-token).
+     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash'.
+     - `title`: The note title.
+     - `body`: The content of the note in Markdown.
+   - Optional inputs:
+     - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
+6. **`list-notebooks`**: Retrieve a list of all notebooks.
+7. **`list-tags`**: Retrieve a list of all tags.
 
 ## Debugging
 

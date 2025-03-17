@@ -246,7 +246,7 @@ server.tool(
 
 server.tool(
   'update-note',
-  'Update the existing note in the database',
+  'Update the existing note in the database. You should retrieve the existing note with \`read-note\` first. When updating the note, you must specify not only the changed fields but also all the un-changed fields.',
   {
     _id: z
       .string()
