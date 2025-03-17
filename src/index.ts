@@ -251,6 +251,18 @@ server.tool(
   }
 )
 
+server.tool('list-tags', `Retrieve a list of all tags`, {}, async () => {
+  const books: Book[] = await fetchJSON('/tags')
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(books, null, 2)
+      }
+    ]
+  }
+})
+
 server.prompt(
   'inkdrop-prompt',
   'Instructions for using the Inkdrop MCP server effectively',
