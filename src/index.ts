@@ -215,7 +215,9 @@ server.tool(
     body: z
       .string()
       .max(1048576)
-      .describe('The content of the note represented with Markdown'),
+      .describe(
+        'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
+      ),
 
     status: z
       .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
