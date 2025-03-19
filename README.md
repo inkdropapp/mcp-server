@@ -2,9 +2,6 @@
 
 A [Model Context Protocol](https://github.com/modelcontextprotocol) server for the [Inkdrop Local HTTP Server API](https://developers.inkdrop.app/data-access/local-http-server).
 
-> [!WARNING]
-> This is highly experimental and use at your own risk.
-
 <a href="https://glama.ai/mcp/servers/c7fgtnckbv">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/c7fgtnckbv/badge" alt="Inkdrop Server MCP server" />
 </a>
@@ -22,10 +19,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
   "mcpServers": {
     "inkdrop": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@inkdropapp/mcp-server"
-      ],
+      "args": ["-y", "@inkdropapp/mcp-server"],
       "env": {
         "INKDROP_LOCAL_SERVER_URL": "http://localhost:19840",
         "INKDROP_LOCAL_USERNAME": "your-local-server-username",
@@ -96,3 +90,4 @@ You can also watch the server logs with this command:
 ```bash
 tail -n 20 -f ~/Library/Logs/Claude/mcp-server-inkdrop.log
 ```
+
