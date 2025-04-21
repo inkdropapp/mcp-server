@@ -2,11 +2,21 @@
 
 A [Model Context Protocol](https://github.com/modelcontextprotocol) server for the [Inkdrop Local HTTP Server API](https://developers.inkdrop.app/data-access/local-http-server).
 
+[![smithery badge](https://smithery.ai/badge/@inkdropapp/mcp-server)](https://smithery.ai/server/@inkdropapp/mcp-server)
 <a href="https://glama.ai/mcp/servers/c7fgtnckbv">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/c7fgtnckbv/badge" alt="Inkdrop Server MCP server" />
 </a>
 
+
 ## Installation
+
+### Installing via Smithery
+
+To install Inkdrop MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@inkdropapp/mcp-server):
+
+```bash
+npx -y @smithery/cli install @inkdropapp/mcp-server --client claude
+```
 
 1. [Set up a local HTTP server](https://developers.inkdrop.app/guides/access-the-local-database#accessing-via-http-advanced)
 
