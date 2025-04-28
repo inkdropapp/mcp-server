@@ -152,13 +152,14 @@ Note that you can't specify excluding modifiers only without including condition
 
 server.tool(
   'list-notes',
-  `List all notes in a specified notebook with ID.
+  `List all notes with specified conditions.
 The result does not include entire note bodies as they are truncated in 200 characters.
 You have to retrieve the full note content by calling \`read-note\`.
 `,
   {
     bookId: z
       .string()
+      .optional()
       .describe(
         `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\``
       ),
@@ -182,7 +183,7 @@ You have to retrieve the full note content by calling \`read-note\`.
       .describe(`Reverse the order of the output documents`)
   },
   async ({ bookId, tagIds, keyword, sort, descending }) => {
-    const bookFilter = `bookId:${bookId.split(':')[1]}`
+    const bookFilter = bookId ? `bookId:${bookId.split(':')[1]}` : ''
     const tagFilter = tagIds ? tagIds.map(t => `tagId:${t}`).join(' ') : ''
     keyword = `${bookFilter} ${tagFilter} ${keyword || ''}`.trim()
     const notes: Note[] = await fetchJSON('/notes', {

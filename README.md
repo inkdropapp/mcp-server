@@ -42,7 +42,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
      - `keyword`: Keyword to search for.
    - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
    - Supports advanced search qualifiers like `book:`, `tag:`, `status:`, `title:`, etc.
-3. **`list-notes`**: List all notes in a specified notebook.
+3. **`list-notes`**: List all notes with specified conditions.
    - Required inputs:
      - `bookId`: The notebook ID. It always starts with 'book:'.
    - Optional inputs:
@@ -90,4 +90,3 @@ You can also watch the server logs with this command:
 ```bash
 tail -n 20 -f ~/Library/Logs/Claude/mcp-server-inkdrop.log
 ```
-
