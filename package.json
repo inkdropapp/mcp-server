@@ -1,6 +1,6 @@
 {
   "name": "@inkdropapp/mcp-server",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Inkdrop Model Context Protocol Server",
   "bin": {
     "inkdrop-mcp-server": "dist/index.js"
