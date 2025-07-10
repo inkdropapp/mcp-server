@@ -242,7 +242,7 @@ server.tool(
 
     tags: z
       .array(z.string().startsWith('tag:'))
-
+      .optional()
       .describe(
         'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
       )
@@ -298,7 +298,14 @@ server.tool(
     status: z
       .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
       .optional()
-      .describe('The status of the note')
+      .describe('The status of the note'),
+
+    tags: z
+      .array(z.string().startsWith('tag:'))
+      .optional()
+      .describe(
+        'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+      )
   },
   async noteData => {
     const res = await postJSON(`/notes`, noteData)
@@ -337,7 +344,7 @@ server.tool(
   },
   async ({ tagId }) => {
     if (!tagId.startsWith('tag:')) tagId = `tag:${tagId}`
-    const tag: Tag[] = await fetchJSON(`/${tagId}`, {})
+    const tag: Tag = await fetchJSON(`/${tagId}`, {})
     return {
       content: [
         {
@@ -443,7 +450,7 @@ server.tool(
   },
   async ({ bookId }) => {
     if (!bookId.startsWith('book:')) bookId = `book:${bookId}`
-    const book: Book[] = await fetchJSON(`/${bookId}`, {})
+    const book: Book = await fetchJSON(`/${bookId}`, {})
     return {
       content: [
         {
