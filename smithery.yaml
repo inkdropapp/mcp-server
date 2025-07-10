@@ -1,0 +1,29 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - inkdropLocalServerUrl
+      - inkdropLocalUsername
+      - inkdropLocalPassword
+    properties:
+      inkdropLocalServerUrl:
+        type: string
+        description: URL of the Inkdrop local HTTP server
+      inkdropLocalUsername:
+        type: string
+        description: Username for Inkdrop local HTTP server
+      inkdropLocalPassword:
+        type: string
+        description: Password for Inkdrop local HTTP server
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['dist/index.js'], env: { INKDROP_LOCAL_SERVER_URL: config.inkdropLocalServerUrl, INKDROP_LOCAL_USERNAME: config.inkdropLocalUsername, INKDROP_LOCAL_PASSWORD: config.inkdropLocalPassword } })
+  exampleConfig:
+    inkdropLocalServerUrl: http://localhost:19840
+    inkdropLocalUsername: your-local-server-username
+    inkdropLocalPassword: your-local-server-password
