@@ -5,7 +5,15 @@ import {
   ResourceTemplate
 } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { Note, NoteSchema, Book, BookSchema, TagSchema } from 'inkdrop-model'
+import {
+  Note,
+  NoteSchema,
+  Book,
+  BookSchema,
+  TagSchema,
+  TAG_COLOR,
+  Tag
+} from 'inkdrop-model'
 import { z } from 'zod'
 import { fetchJSON, postJSON } from './api'
 
@@ -230,7 +238,14 @@ server.tool(
     status: z
       .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
       .optional()
-      .describe('The status of the note')
+      .describe('The status of the note'),
+
+    tags: z
+      .array(z.string().startsWith('tag:'))
+
+      .describe(
+        'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+      )
   },
   async noteData => {
     const res = await postJSON(`/notes`, noteData)
@@ -298,6 +313,107 @@ server.tool(
   }
 )
 
+server.tool('list-tags', `Retrieve a list of all tags`, {}, async () => {
+  const tags: Tag[] = await fetchJSON('/tags')
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(tags, null, 2)
+      }
+    ]
+  }
+})
+
+server.tool(
+  'read-tag',
+  `Retrieve a single tag`,
+  {
+    tagId: z
+      .string()
+      .describe(
+        'ID of the tag to retrieve. It can be found as `_id` in the tag docs. It always starts with \`tag:\`.'
+      )
+  },
+  async ({ tagId }) => {
+    if (!tagId.startsWith('tag:')) tagId = `tag:${tagId}`
+    const tag: Tag[] = await fetchJSON(`/${tagId}`, {})
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(tag, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+const TagColors = Object.values(TAG_COLOR) as [string, ...string[]]
+
+server.tool(
+  'create-tag',
+  'Create a new tag in the database',
+  {
+    color: z
+      .enum(TagColors)
+      .default('default')
+      .describe('The color type of the tag'),
+
+    name: z.string().max(64).describe('The name of the tag')
+  },
+  async tagData => {
+    const res = await postJSON(`/tags`, tagData)
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.tool(
+  'update-tag',
+  'Update the existing tag in the database. You should retrieve the existing tag with \`list-tags\` first. When updating the tag, you must specify not only the changed fields but also all the un-changed fields.',
+  {
+    _id: z
+      .string()
+      .min(6)
+      .max(128)
+      .regex(/^tag:/)
+      .describe(
+        'The unique document ID which should start with `tag:` and the remains are randomly generated string'
+      ),
+
+    _rev: z
+      .string()
+      .describe(
+        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+      ),
+
+    color: z
+      .enum(TagColors)
+      .default('default')
+      .describe('The color type of the tag'),
+
+    name: z.string().max(64).describe('The name of the tag')
+  },
+  async tagData => {
+    const res = await postJSON(`/tags`, tagData)
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
 server.tool(
   'list-notebooks',
   `Retrieve a list of all notebooks`,
@@ -315,17 +431,29 @@ server.tool(
   }
 )
 
-server.tool('list-tags', `Retrieve a list of all tags`, {}, async () => {
-  const books: Book[] = await fetchJSON('/tags')
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify(books, null, 2)
-      }
-    ]
+server.tool(
+  'read-book',
+  `Retrieve a single book`,
+  {
+    bookId: z
+      .string()
+      .describe(
+        'ID of the book to retrieve. It can be found as `_id` in the book docs. It always starts with \`book:\`.'
+      )
+  },
+  async ({ bookId }) => {
+    if (!bookId.startsWith('book:')) bookId = `book:${bookId}`
+    const book: Book[] = await fetchJSON(`/${bookId}`, {})
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(book, null, 2)
+        }
+      ]
+    }
   }
-})
+)
 
 server.prompt(
   'inkdrop-prompt',
