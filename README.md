@@ -8,7 +8,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
 
 ## Installation
 
-1. [Set up a local HTTP server](https://developers.inkdrop.app/guides/access-the-local-database#accessing-via-http-advanced)
+1. [Set up a local HTTP server](https://developers.inkdrop.app/guides/integrate-with-external-programs)
 
 2. Add server config to Claude Desktop:
    - MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
