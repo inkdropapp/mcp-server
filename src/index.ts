@@ -20,10 +20,10 @@ import { fetchJSON, postJSON } from './api'
 
 const server = new McpServer({
   name: 'Inkdrop',
-  version: '1.0.0'
+  version: '1.3.0'
 })
 
-server.resource(
+server.registerResource(
   'note',
   new ResourceTemplate('inkdrop://note/{noteId}', { list: undefined }),
   {
@@ -44,15 +44,18 @@ server.resource(
   }
 )
 
-server.tool(
+server.registerTool(
   'read-note',
-  'Retrieve the complete contents of the note by its ID from the database.',
   {
-    noteId: z
-      .string()
-      .describe(
-        'ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
-      )
+    description:
+      'Retrieve the complete contents of the note by its ID from the database.',
+    inputSchema: {
+      noteId: z
+        .string()
+        .describe(
+          'ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
+        )
+    }
   },
   async ({ noteId }) => {
     if (!noteId.startsWith('note:')) noteId = `note:${noteId}`
@@ -68,9 +71,10 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'search-notes',
-  `List all notes that contain a given keyword.
+  {
+    description: `List all notes that contain a given keyword.
 The result does not include entire note bodies as they are truncated in 200 characters.
 You have to retrieve the full note content by calling \`read-note\`.
 Here are tips to specify keywords effectively:
@@ -79,18 +83,18 @@ Here are tips to specify keywords effectively:
 
 You can use special qualifiers to get more accurate results. See the qualifiers and their usage examples:
 
-- **book**  
+- **book**
   \`book:Blog\`: Searches for notes in the 'Blog' notebook.
   \`book:"Desktop App"\`: Searches for notes in the 'Desktop App' notebook.
 - **bookId**
   \`bookId:kGlLniaV\`: Searches for notes in the notebook ID 'book:kGlLniaV'.
-- **tag**  
+- **tag**
   \`tag:JavaScript\`: Searches for all notes having the 'JavaScript' tag. Read more about [tags](https://docs.inkdrop.app/manual/write-notes#tag-notes).
-- **status**  
+- **status**
   \`status:onHold\`: Searches for all notes with the 'On hold' status. Read more about [statuses](/reference/note-statuses).
-- **title**  
+- **title**
   \`title:"JavaScript setTimeout"\`: Searches for the note with the specified title.
-- **body**  
+- **body**
   \`body:KEYWORD\`: Searches for a specific word in all notes. Equivalent to a [global search](#search-for-notes-across-all-notebooks).
 
 ### Combine qualifiers
@@ -131,14 +135,15 @@ Note that you can't specify excluding modifiers only without including condition
 
 **WARNING**: Make sure to enter a text to search for after the exclusion modifier.
 
-- ✅ Will work  
+- ✅ Will work
   \`-book:Backend "closure functions"\`
 
-- ⛔️ Won't work  
+- ⛔️ Won't work
    \`-book:Backend\`. There's no query. Inkdrop doesn't understand what to search for.
     `,
-  {
-    keyword: z.string().describe(`Keyword to search for.`)
+    inputSchema: {
+      keyword: z.string().describe(`Keyword to search for.`)
+    }
   },
   async ({ keyword }) => {
     const notes: Note[] = await fetchJSON('/notes', { keyword, limit: 10 })
@@ -159,37 +164,39 @@ Note that you can't specify excluding modifiers only without including condition
   }
 )
 
-server.tool(
+server.registerTool(
   'list-notes',
-  `List all notes with specified conditions.
+  {
+    description: `List all notes with specified conditions.
 The result does not include entire note bodies as they are truncated in 200 characters.
 You have to retrieve the full note content by calling \`read-note\`.
 `,
-  {
-    bookId: z
-      .string()
-      .optional()
-      .describe(
-        `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\``
-      ),
-    tagIds: z
-      .array(z.string())
-      .optional()
-      .default([])
-      .describe(
-        `An array of tag IDs to filter. It always starts with 'tag:'. You can retrieve a list of available tags from \`list-tags\`.`
-      ),
-    keyword: z.string().optional().describe(`Keyword to filter notes`),
-    sort: z
-      .enum(['updatedAt', 'createdAt', 'title'])
-      .optional()
-      .default('updatedAt')
-      .describe(`Sort the documents by the specified field`),
-    descending: z
-      .boolean()
-      .optional()
-      .default(true)
-      .describe(`Reverse the order of the output documents`)
+    inputSchema: {
+      bookId: z
+        .string()
+        .optional()
+        .describe(
+          `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\``
+        ),
+      tagIds: z
+        .array(z.string())
+        .optional()
+        .default([])
+        .describe(
+          `An array of tag IDs to filter. It always starts with 'tag:'. You can retrieve a list of available tags from \`list-tags\`.`
+        ),
+      keyword: z.string().optional().describe(`Keyword to filter notes`),
+      sort: z
+        .enum(['updatedAt', 'createdAt', 'title'])
+        .optional()
+        .default('updatedAt')
+        .describe(`Sort the documents by the specified field`),
+      descending: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe(`Reverse the order of the output documents`)
+    }
   },
   async ({ bookId, tagIds, keyword, sort, descending }) => {
     const bookFilter = bookId ? `bookId:${bookId.split(':')[1]}` : ''
@@ -218,35 +225,37 @@ You have to retrieve the full note content by calling \`read-note\`.
   }
 )
 
-server.tool(
+server.registerTool(
   'create-note',
-  'Create a new note in the database',
   {
-    bookId: z
-      .string()
-      .min(5)
-      .max(128)
-      .regex(/^(book:|trash$)/)
-      .describe('The notebook ID'),
+    description: 'Create a new note in the database',
+    inputSchema: {
+      bookId: z
+        .string()
+        .min(5)
+        .max(128)
+        .regex(/^(book:|trash$)/)
+        .describe('The notebook ID'),
 
-    title: z.string().max(128).describe('The note title'),
+      title: z.string().max(128).describe('The note title'),
 
-    body: z
-      .string()
-      .max(1048576)
-      .describe('The content of the note represented with Markdown'),
+      body: z
+        .string()
+        .max(1048576)
+        .describe('The content of the note represented with Markdown'),
 
-    status: z
-      .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
-      .optional()
-      .describe('The status of the note'),
+      status: z
+        .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
+        .optional()
+        .describe('The status of the note'),
 
-    tags: z
-      .array(z.string().startsWith('tag:'))
-      .optional()
-      .describe(
-        'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
-      )
+      tags: z
+        .array(z.string().startsWith('tag:'))
+        .optional()
+        .describe(
+          'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+        )
+    }
   },
   async noteData => {
     const res = await postJSON(`/notes`, noteData)
@@ -261,54 +270,57 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'update-note',
-  'Update the existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.',
   {
-    _id: z
-      .string()
-      .min(6)
-      .max(128)
-      .regex(/^note:/)
-      .describe(
-        'The unique document ID which should start with `note:` and the remains are randomly generated string'
-      ),
+    description:
+      'Update the existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.',
+    inputSchema: {
+      _id: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^note:/)
+        .describe(
+          'The unique document ID which should start with `note:` and the remains are randomly generated string'
+        ),
 
-    _rev: z
-      .string()
-      .describe(
-        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-      ),
+      _rev: z
+        .string()
+        .describe(
+          'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+        ),
 
-    bookId: z
-      .string()
-      .min(5)
-      .max(128)
-      .regex(/^(book:|trash$)/)
-      .optional()
-      .describe('The notebook ID'),
+      bookId: z
+        .string()
+        .min(5)
+        .max(128)
+        .regex(/^(book:|trash$)/)
+        .optional()
+        .describe('The notebook ID'),
 
-    title: z.string().max(128).optional().describe('The note title'),
+      title: z.string().max(128).optional().describe('The note title'),
 
-    body: z
-      .string()
-      .max(1048576)
-      .optional()
-      .describe(
-        'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
-      ),
+      body: z
+        .string()
+        .max(1048576)
+        .optional()
+        .describe(
+          'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
+        ),
 
-    status: z
-      .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
-      .optional()
-      .describe('The status of the note'),
+      status: z
+        .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
+        .optional()
+        .describe('The status of the note'),
 
-    tags: z
-      .array(z.string().startsWith('tag:'))
-      .optional()
-      .describe(
-        'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
-      )
+      tags: z
+        .array(z.string().startsWith('tag:'))
+        .optional()
+        .describe(
+          'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+        )
+    }
   },
   async noteData => {
     const rev = noteData._rev
@@ -329,30 +341,33 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'patch-note',
-  'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window.',
   {
-    _id: z
-      .string()
-      .min(6)
-      .max(128)
-      .regex(/^note:/)
-      .describe(
-        'The unique document ID which should start with `note:` and the remains are randomly generated string'
-      ),
+    description:
+      'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window.',
+    inputSchema: {
+      _id: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^note:/)
+        .describe(
+          'The unique document ID which should start with `note:` and the remains are randomly generated string'
+        ),
 
-    _rev: z
-      .string()
-      .describe(
-        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-      ),
+      _rev: z
+        .string()
+        .describe(
+          'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+        ),
 
-    patch: z
-      .string()
-      .describe(
-        'A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.'
-      )
+      patch: z
+        .string()
+        .describe(
+          'A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.'
+        )
+    }
   },
   async ({ _id, _rev, patch }) => {
     const existingNote = await fetchJSON<Note>(`/${_id}`, { rev: _rev })
@@ -380,27 +395,33 @@ server.tool(
   }
 )
 
-server.tool('list-tags', `Retrieve a list of all tags`, {}, async () => {
-  const tags: Tag[] = await fetchJSON('/tags')
-  return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify(tags, null, 2)
-      }
-    ]
+server.registerTool(
+  'list-tags',
+  { description: 'Retrieve a list of all tags' },
+  async () => {
+    const tags: Tag[] = await fetchJSON('/tags')
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(tags, null, 2)
+        }
+      ]
+    }
   }
-})
+)
 
-server.tool(
+server.registerTool(
   'read-tag',
-  `Retrieve a single tag`,
   {
-    tagId: z
-      .string()
-      .describe(
-        'ID of the tag to retrieve. It can be found as `_id` in the tag docs. It always starts with \`tag:\`.'
-      )
+    description: 'Retrieve a single tag',
+    inputSchema: {
+      tagId: z
+        .string()
+        .describe(
+          'ID of the tag to retrieve. It can be found as `_id` in the tag docs. It always starts with \`tag:\`.'
+        )
+    }
   },
   async ({ tagId }) => {
     if (!tagId.startsWith('tag:')) tagId = `tag:${tagId}`
@@ -418,16 +439,18 @@ server.tool(
 
 const TagColors = Object.values(TAG_COLOR) as [string, ...string[]]
 
-server.tool(
+server.registerTool(
   'create-tag',
-  'Create a new tag in the database',
   {
-    color: z
-      .enum(TagColors)
-      .default('default')
-      .describe('The color type of the tag'),
+    description: 'Create a new tag in the database',
+    inputSchema: {
+      color: z
+        .enum(TagColors)
+        .default('default')
+        .describe('The color type of the tag'),
 
-    name: z.string().max(64).describe('The name of the tag')
+      name: z.string().max(64).describe('The name of the tag')
+    }
   },
   async tagData => {
     const res = await postJSON(`/tags`, tagData)
@@ -442,31 +465,34 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'update-tag',
-  'Update the existing tag in the database. You should retrieve the existing tag with \`list-tags\` first. When updating the tag, you must specify not only the changed fields but also all the un-changed fields.',
   {
-    _id: z
-      .string()
-      .min(6)
-      .max(128)
-      .regex(/^tag:/)
-      .describe(
-        'The unique document ID which should start with `tag:` and the remains are randomly generated string'
-      ),
+    description:
+      'Update the existing tag in the database. You should retrieve the existing tag with \`list-tags\` first. When updating the tag, you must specify not only the changed fields but also all the un-changed fields.',
+    inputSchema: {
+      _id: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^tag:/)
+        .describe(
+          'The unique document ID which should start with `tag:` and the remains are randomly generated string'
+        ),
 
-    _rev: z
-      .string()
-      .describe(
-        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-      ),
+      _rev: z
+        .string()
+        .describe(
+          'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+        ),
 
-    color: z
-      .enum(TagColors)
-      .default('default')
-      .describe('The color type of the tag'),
+      color: z
+        .enum(TagColors)
+        .default('default')
+        .describe('The color type of the tag'),
 
-    name: z.string().max(64).describe('The name of the tag')
+      name: z.string().max(64).describe('The name of the tag')
+    }
   },
   async tagData => {
     const res = await postJSON(`/tags`, tagData)
@@ -481,10 +507,9 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'list-notebooks',
-  `Retrieve a list of all notebooks`,
-  {},
+  { description: 'Retrieve a list of all notebooks' },
   async () => {
     const books: Book[] = await fetchJSON('/books')
     return {
@@ -498,15 +523,17 @@ server.tool(
   }
 )
 
-server.tool(
+server.registerTool(
   'read-book',
-  `Retrieve a single book`,
   {
-    bookId: z
-      .string()
-      .describe(
-        'ID of the book to retrieve. It can be found as `_id` in the book docs. It always starts with \`book:\`.'
-      )
+    description: 'Retrieve a single book',
+    inputSchema: {
+      bookId: z
+        .string()
+        .describe(
+          'ID of the book to retrieve. It can be found as `_id` in the book docs. It always starts with \`book:\`.'
+        )
+    }
   },
   async ({ bookId }) => {
     if (!bookId.startsWith('book:')) bookId = `book:${bookId}`
@@ -522,9 +549,9 @@ server.tool(
   }
 )
 
-server.prompt(
+server.registerPrompt(
   'inkdrop-prompt',
-  'Instructions for using the Inkdrop MCP server effectively',
+  { description: 'Instructions for using the Inkdrop MCP server effectively' },
   () => ({
     messages: [
       {
