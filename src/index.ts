@@ -262,7 +262,7 @@ server.tool(
 
 server.tool(
   'update-note',
-  'Update the existing note in the database. You should retrieve the existing note with \`read-note\` first. When updating the note, you must specify not only the changed fields but also all the un-changed fields.',
+  'Update the existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.',
   {
     _id: z
       .string()
@@ -284,13 +284,15 @@ server.tool(
       .min(5)
       .max(128)
       .regex(/^(book:|trash$)/)
+      .optional()
       .describe('The notebook ID'),
 
-    title: z.string().max(128).describe('The note title'),
+    title: z.string().max(128).optional().describe('The note title'),
 
     body: z
       .string()
       .max(1048576)
+      .optional()
       .describe(
         'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
       ),
@@ -308,7 +310,13 @@ server.tool(
       )
   },
   async noteData => {
-    const res = await postJSON(`/notes`, noteData)
+    const rev = noteData._rev
+    const existingNote = await fetchJSON<Note>(`/${noteData._id}`, { rev })
+
+    const res = await postJSON(`/notes`, {
+      ...existingNote,
+      ...noteData
+    })
     return {
       content: [
         {
