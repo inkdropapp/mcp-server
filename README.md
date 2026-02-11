@@ -59,30 +59,35 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
    - Optional inputs:
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-5. **`update-note`**: Update an existing note in the database.
+5. **`update-note`**: Update an existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
+   - Optional inputs:
      - `bookId`: The notebook ID. Must start with 'book:' or be 'trash'.
      - `title`: The note title.
      - `body`: The content of the note in Markdown.
-   - Optional inputs:
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-6. **`list-notebooks`**: Retrieve a list of all notebooks.
-7. **`read-book`**: Retrieve a single notebook by its ID.
+6. **`patch-note`**: Update the body of an existing note by applying a unified diff patch. More efficient than `update-note` for small edits to large notes as it saves tokens.
+   - Required inputs:
+     - `_id`: The note ID. Must start with 'note:'.
+     - `_rev`: The revision ID (CouchDB MVCC-token).
+     - `patch`: A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.
+7. **`list-notebooks`**: Retrieve a list of all notebooks.
+8. **`read-book`**: Retrieve a single notebook by its ID.
    - Required inputs:
      - `bookId`: The notebook ID. Must start with 'book:'.
-8. **`list-tags`**: Retrieve a list of all tags.
-9. **`read-tag`**: Retrieve a single tag by its ID.
-   - Required inputs:
-     - `tagId`: The tag ID. Must start with 'tag:'.
-10. **`create-tag`**: Create a new tag in the database.
+9. **`list-tags`**: Retrieve a list of all tags.
+10. **`read-tag`**: Retrieve a single tag by its ID.
+    - Required inputs:
+      - `tagId`: The tag ID. Must start with 'tag:'.
+11. **`create-tag`**: Create a new tag in the database.
     - Required inputs:
       - `name`: The name of the tag.
     - Optional inputs:
       - `color`: The color type of the tag (`default`, `red`, `orange`, `yellow`, `olive`, `green`, `teal`, `blue`, `violet`, `purple`, `pink`, `brown`, `grey`, `black`). Default: `default`.
-11. **`update-tag`**: Update an existing tag in the database.
+12. **`update-tag`**: Update an existing tag in the database.
     - Required inputs:
       - `_id`: The tag ID. Must start with 'tag:'.
       - `_rev`: The revision ID (CouchDB MVCC-token).
