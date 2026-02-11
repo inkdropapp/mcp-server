@@ -15,6 +15,7 @@ import {
   Tag
 } from 'inkdrop-model'
 import { z } from 'zod'
+import { applyPatch } from 'diff'
 import { fetchJSON, postJSON } from './api'
 
 const server = new McpServer({
@@ -317,6 +318,57 @@ server.tool(
       ...existingNote,
       ...noteData
     })
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.tool(
+  'patch-note',
+  'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window.',
+  {
+    _id: z
+      .string()
+      .min(6)
+      .max(128)
+      .regex(/^note:/)
+      .describe(
+        'The unique document ID which should start with `note:` and the remains are randomly generated string'
+      ),
+
+    _rev: z
+      .string()
+      .describe(
+        'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+      ),
+
+    patch: z
+      .string()
+      .describe(
+        'A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.'
+      )
+  },
+  async ({ _id, _rev, patch }) => {
+    const existingNote = await fetchJSON<Note>(`/${_id}`, { rev: _rev })
+    const patched = applyPatch(existingNote.body, patch)
+    if (patched === false) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'Failed to apply the patch. The diff may be malformed or does not match the current note body.'
+          }
+        ],
+        isError: true
+      }
+    }
+    const res = await postJSON('/notes', { ...existingNote, body: patched })
     return {
       content: [
         {

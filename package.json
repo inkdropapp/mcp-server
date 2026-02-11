@@ -26,6 +26,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
     "ajv": "^8.17.1",
+    "diff": "^8.0.3",
     "inkdrop-model": "^2.8.0",
     "zod": "^3.24.2"
   },
