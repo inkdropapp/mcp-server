@@ -328,7 +328,8 @@ server.registerTool(
 
     const res = await postJSON(`/notes`, {
       ...existingNote,
-      ...noteData
+      ...noteData,
+      updatedAt: +new Date()
     })
     return {
       content: [
@@ -383,7 +384,11 @@ server.registerTool(
         isError: true
       }
     }
-    const res = await postJSON('/notes', { ...existingNote, body: patched })
+    const res = await postJSON('/notes', {
+      ...existingNote,
+      body: patched,
+      updatedAt: +new Date()
+    })
     return {
       content: [
         {
