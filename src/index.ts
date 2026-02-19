@@ -195,10 +195,15 @@ You have to retrieve the full note content by calling \`read-note\`.
         .boolean()
         .optional()
         .default(true)
-        .describe(`Reverse the order of the output documents`)
+        .describe(`Reverse the order of the output documents`),
+      limit: z
+        .number()
+        .optional()
+        .default(100)
+        .describe(`Limit the number of results returned`)
     }
   },
-  async ({ bookId, tagIds, keyword, sort, descending }) => {
+  async ({ bookId, tagIds, keyword, sort, descending, limit }) => {
     const bookFilter = bookId ? `bookId:${bookId.split(':')[1]}` : ''
     const tagFilter = tagIds ? tagIds.map(t => `tagId:${t}`).join(' ') : ''
     keyword = `${bookFilter} ${tagFilter} ${keyword || ''}`.trim()
@@ -206,7 +211,7 @@ You have to retrieve the full note content by calling \`read-note\`.
       keyword,
       sort,
       descending,
-      limit: 100
+      limit
     })
     const summaries = notes.map(note => {
       return {
@@ -346,7 +351,7 @@ server.registerTool(
   'patch-note',
   {
     description:
-      'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window.',
+      'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window. NOTE: This tool should be used only when updating a few lines in the note body.',
     inputSchema: {
       _id: z
         .string()
