@@ -15,7 +15,7 @@ import {
   Tag
 } from 'inkdrop-model'
 import { z } from 'zod'
-import { applyPatch } from 'diff'
+
 import { fetchJSON, postJSON } from './api'
 
 const server = new McpServer({
@@ -351,7 +351,7 @@ server.registerTool(
   'patch-note',
   {
     description:
-      'Update the body of the existing note by applying a diff patch in the database. You should use this tool when you want to make partial updates to the note body without replacing the entire content because it is much more efficient for saving token window. NOTE: This tool should be used only when updating a few lines in the note body.',
+      'Update the body of the existing note by performing an exact string replacement. Use this tool to make partial updates to the note body without replacing the entire content. You must first read the note with `read-note` to get the current body, then specify the exact substring to replace.',
     inputSchema: {
       _id: z
         .string()
@@ -368,27 +368,55 @@ server.registerTool(
           'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
         ),
 
-      patch: z
+      old_string: z
+        .string()
+        .min(1)
+        .describe(
+          'The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.'
+        ),
+
+      new_string: z
         .string()
         .describe(
-          'A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.'
+          'The text to replace `old_string` with. Use an empty string to delete the matched text.'
         )
     }
   },
-  async ({ _id, _rev, patch }) => {
+  async ({ _id, _rev, old_string, new_string }) => {
     const existingNote = await fetchJSON<Note>(`/${_id}`, { rev: _rev })
-    const patched = applyPatch(existingNote.body, patch)
-    if (patched === false) {
+    const body = existingNote.body
+
+    const firstIndex = body.indexOf(old_string)
+    if (firstIndex === -1) {
       return {
         content: [
           {
             type: 'text',
-            text: 'Failed to apply the patch. The diff may be malformed or does not match the current note body.'
+            text: 'Failed to patch: `old_string` was not found in the note body.'
           }
         ],
         isError: true
       }
     }
+
+    const secondIndex = body.indexOf(old_string, firstIndex + 1)
+    if (secondIndex !== -1) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'Failed to patch: `old_string` matches multiple locations in the note body. Provide more surrounding context to make it unique.'
+          }
+        ],
+        isError: true
+      }
+    }
+
+    const patched =
+      body.slice(0, firstIndex) +
+      new_string +
+      body.slice(firstIndex + old_string.length)
+
     const res = await postJSON('/notes', {
       ...existingNote,
       body: patched,
