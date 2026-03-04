@@ -69,11 +69,12 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
      - `body`: The content of the note in Markdown.
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-6. **`patch-note`**: Update the body of an existing note by applying a unified diff patch. More efficient than `update-note` for small edits to large notes as it saves tokens.
+6. **`patch-note`**: Update the body of an existing note by performing an exact string replacement. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
-     - `patch`: A unified diff string to apply to the note body. Use standard unified diff format with `---`/`+++` headers and `@@ -start,count +start,count @@` hunk markers.
+     - `old_string`: The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.
+     - `new_string`: The text to replace `old_string` with. Use an empty string to delete the matched text.
 7. **`list-notebooks`**: Retrieve a list of all notebooks.
 8. **`read-book`**: Retrieve a single notebook by its ID.
    - Required inputs:
