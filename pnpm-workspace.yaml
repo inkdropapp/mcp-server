@@ -1,0 +1,3 @@
+minimumReleaseAgeExclude:
+  - '@inkdropapp/*'
+  - inkdrop-model

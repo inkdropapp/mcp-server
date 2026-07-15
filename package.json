@@ -24,14 +24,14 @@
   "author": "Takuya Matsuyama<contact@inkdrop.app>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "ajv": "^8.17.1",
-    "inkdrop-model": "^2.11.1",
-    "zod": "^4.3.6"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ajv": "^8.20.0",
+    "inkdrop-model": "^2.13.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.2.3",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3"
+    "@types/node": "^26.1.1",
+    "prettier": "^3.9.5",
+    "typescript": "^7.0.2"
   }
 }
