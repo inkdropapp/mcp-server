@@ -2,9 +2,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "lib": [
-      "es2024"
-    ],
+    "lib": ["es2024"],
+    "types": ["node"],
     "stripInternal": true,
     "noUnusedLocals": false,
     "strict": true,
@@ -17,11 +16,6 @@
     "declaration": false,
     "skipLibCheck": true
   },
-  "include": [
-    "src/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "build"
-  ]
+  "include": ["src/*.ts"],
+  "exclude": ["node_modules", "build"]
 }
