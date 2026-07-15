@@ -17,6 +17,7 @@ import {
 import { z } from 'zod'
 
 import { fetchJSON, postJSON } from './api'
+import { getNoteUri } from './utils'
 
 const server = new McpServer({
   name: 'Inkdrop',
@@ -31,7 +32,9 @@ server.registerResource(
     mimeType: 'application/json'
   },
   async (uri, { noteId }) => {
-    const note: Note[] = await fetchJSON(`/${noteId}`, {})
+    const id = Array.isArray(noteId) ? noteId[0] : noteId
+    const normalizedId = id.startsWith('note:') ? id : `note:${id}`
+    const note: Note[] = await fetchJSON(`/${normalizedId}`, {})
     return {
       contents: [
         {
@@ -67,6 +70,48 @@ server.registerTool(
           text: JSON.stringify(note, null, 2)
         }
       ]
+    }
+  }
+)
+
+server.registerTool(
+  'read-backlinks',
+  {
+    description: `Retrieve backlinks for a note — the notes that link to it.
+Each result is returned as a resource link (\`inkdrop://note/<id>\`) pointing to the referring note.
+Backlinks are found by searching all note bodies for the note's link URI.`,
+    inputSchema: {
+      noteId: z
+        .string()
+        .describe(
+          'ID of the note to find backlinks for. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
+        )
+    }
+  },
+  async ({ noteId }) => {
+    if (!noteId.startsWith('note:')) noteId = `note:${noteId}`
+    const noteLink = getNoteUri(noteId)
+    const backlinks: Note[] = await fetchJSON('/notes', {
+      keyword: noteLink,
+      limit: 100
+    })
+    if (backlinks.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `No backlinks found for ${noteLink}.`
+          }
+        ]
+      }
+    }
+    return {
+      content: backlinks.map(note => ({
+        type: 'resource_link' as const,
+        uri: getNoteUri(note._id),
+        name: note.title || 'Untitled note',
+        mimeType: 'application/json'
+      }))
     }
   }
 )
