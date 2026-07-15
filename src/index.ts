@@ -51,24 +51,61 @@ server.registerTool(
   'read-note',
   {
     description:
-      'Retrieve the complete contents of the note by its ID from the database.',
+      'Retrieve the complete contents of the note by its ID from the database. ' +
+      'A note created from a template has a `sourceTemplateId`; when present, the response ' +
+      'includes a resource link to that source template, whose body holds the fill-out ' +
+      'instructions and examples. Read the template (or pass `includeTemplate: true`) before ' +
+      'completing the note.',
     inputSchema: {
       noteId: z
         .string()
         .describe(
           'ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
+        ),
+      includeTemplate: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe(
+          'When true and the note has a `sourceTemplateId`, also fetch that template and embed its body (the fill-out instructions and examples) as an extra text block, so you get the note and its template in one call.'
         )
     }
   },
-  async ({ noteId }) => {
+  async ({ noteId, includeTemplate }) => {
     if (!noteId.startsWith('note:')) noteId = `note:${noteId}`
-    const note: Note[] = await fetchJSON(`/${noteId}`, {})
+    const note = await fetchJSON<Note>(`/${noteId}`, {})
+
+    let templateBlockText: string | null = null
+    if (includeTemplate && note.sourceTemplateId) {
+      try {
+        const template = await fetchJSON<Note>(`/${note.sourceTemplateId}`, {})
+        templateBlockText = `# Source template: ${template.title}\n\n${template.body}`
+      } catch {
+        // Template unavailable (e.g. deleted → 404). Skip the embed; the note read still succeeds.
+      }
+    }
+
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: JSON.stringify(note, null, 2)
-        }
+        },
+        ...(note.sourceTemplateId
+          ? [
+              {
+                type: 'resource_link' as const,
+                uri: getNoteUri(note.sourceTemplateId),
+                name: 'Source template',
+                mimeType: 'application/json',
+                description:
+                  'The template this note was created from. Read it to get the fill-out instructions and examples before completing this note.'
+              }
+            ]
+          : []),
+        ...(templateBlockText
+          ? [{ type: 'text' as const, text: templateBlockText }]
+          : [])
       ]
     }
   }
