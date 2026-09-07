@@ -4,27 +4,7 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
 
 ## Installation
 
-1. [Set up a local HTTP server](https://developers.inkdrop.app/guides/integrate-with-external-programs)
-
-2. Add server config to Claude Desktop:
-   - MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "inkdrop": {
-      "command": "npx",
-      "args": ["-y", "@inkdropapp/mcp-server"],
-      "env": {
-        "INKDROP_LOCAL_SERVER_URL": "http://localhost:19840",
-        "INKDROP_LOCAL_USERNAME": "your-local-server-username",
-        "INKDROP_LOCAL_PASSWORD": "your-local-server-password"
-      }
-    }
-  }
-}
-```
+Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
 
 ## Components
 
