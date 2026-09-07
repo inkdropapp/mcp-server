@@ -110,6 +110,21 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
       - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
       - `name`: The name of the tag.
       - `color`: The color type of the tag. Omit it to keep the tag's current color.
+16. **`create-file`**: Create a new attachment file in the database from a local image file or from base64 image data. Returns the Markdown to embed the attachment in a note body.
+    - Required inputs: exactly one of
+      - `filePath`: Absolute path to a local image file to attach. Preferred — it keeps the image bytes out of the conversation.
+      - `data`: Base64-encoded image data, without a `data:` URI prefix.
+    - Optional inputs:
+      - `name`: The file name. Defaults to the file name of `filePath`, or `image.<ext>` when `data` is given.
+      - `contentType`: The MIME type (`image/png`, `image/jpeg`, `image/jpg`, `image/svg+xml`, `image/gif`, `image/heic`, `image/heif`). Inferred from the `filePath` extension when omitted, so it is required with `data`.
+      - `publicIn`: An array of note IDs where the attachment is included. Each must start with 'note:'.
+    - Note: Attachments are limited to 10MB.
+17. **`read-file`**: Retrieve an attachment file by its ID. Returns the file metadata, and the image itself when it is a PNG, JPEG or GIF.
+    - Required inputs:
+      - `fileId`: The attachment ID. Must start with 'file:'.
+    - Optional inputs:
+      - `outputPath`: Absolute path to write the attachment to. When given, the file is saved there and its bytes are not returned inline. Required to get at SVG, HEIC and HEIF attachments, which cannot be displayed inline.
+      - `includeImage`: Whether to return the image alongside the metadata. Default: `true`. Set to `false` to fetch only the metadata of a large attachment.
 
 ## Debugging
 
