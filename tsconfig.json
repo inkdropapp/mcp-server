@@ -5,7 +5,7 @@
     "lib": ["es2024"],
     "types": ["node"],
     "stripInternal": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "strict": true,
     "target": "es2024",
     "module": "nodenext",

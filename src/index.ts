@@ -8,10 +8,7 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   Note,
-  NoteSchema,
   Book,
-  BookSchema,
-  TagSchema,
   TAG_COLOR,
   Tag,
   File as IDFile,
@@ -936,51 +933,6 @@ server.registerTool(
       ]
     }
   }
-)
-
-server.registerPrompt(
-  'inkdrop-prompt',
-  { description: 'Instructions for using the Inkdrop MCP server effectively' },
-  () => ({
-    messages: [
-      {
-        role: 'assistant',
-        content: {
-          type: 'text',
-          text: `Inkdrop is a Markdown note-taking app designed for programmers to help their coding workflow.
-This server provides access to the Inkdrop database. Use it to search notes, create new notes, and track issues written in the notes.
-
-Key capabilities:
-- Search notes by keyword
-- Get a note by its ID
-- Get a list of all notebooks
-- Create a new note
-- Update an existing note
-
-Best practices:
-- When searching:
-  - Use specific, targeted queries for better results (e.g., "auth mobile app" rather than just "auth")
-  - Apply relevant filters when asked or when you can infer the appropriate filters to narrow results
-  - Use \`read-note\` to get the full note content
-
-Model schemas:
-
-\`\`\`json
-${JSON.stringify(NoteSchema, null, 2)}
-\`\`\`
-
-\`\`\`json
-${JSON.stringify(BookSchema, null, 2)}
-\`\`\`
-
-\`\`\`json
-${JSON.stringify(TagSchema, null, 2)}
-\`\`\`
-`
-        }
-      }
-    ]
-  })
 )
 
 async function runServer() {
