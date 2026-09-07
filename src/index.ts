@@ -1,19 +1,8 @@
 #!/usr/bin/env node
 
-import {
-  McpServer,
-  ResourceTemplate
-} from '@modelcontextprotocol/sdk/server/mcp.js'
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import {
-  Note,
-  NoteSchema,
-  Book,
-  BookSchema,
-  TagSchema,
-  TAG_COLOR,
-  Tag
-} from 'inkdrop-model'
+import { Note, NoteSchema, Book, BookSchema, TagSchema, TAG_COLOR, Tag } from 'inkdrop-model'
 import { z } from 'zod'
 
 import { fetchJSON, postJSON } from './api'
@@ -103,9 +92,7 @@ server.registerTool(
               }
             ]
           : []),
-        ...(templateBlockText
-          ? [{ type: 'text' as const, text: templateBlockText }]
-          : [])
+        ...(templateBlockText ? [{ type: 'text' as const, text: templateBlockText }] : [])
       ]
     }
   }
@@ -278,11 +265,7 @@ You have to retrieve the full note content by calling \`read-note\`.
         .optional()
         .default(true)
         .describe(`Reverse the order of the output documents`),
-      limit: z
-        .number()
-        .optional()
-        .default(100)
-        .describe(`Limit the number of results returned`)
+      limit: z.number().optional().default(100).describe(`Limit the number of results returned`)
     }
   },
   async ({ bookId, tagIds, keyword, sort, descending, limit }) => {
@@ -326,10 +309,7 @@ server.registerTool(
 
       title: z.string().max(128).describe('The note title'),
 
-      body: z
-        .string()
-        .max(1048576)
-        .describe('The content of the note represented with Markdown'),
+      body: z.string().max(1048576).describe('The content of the note represented with Markdown'),
 
       status: z
         .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
@@ -495,9 +475,7 @@ server.registerTool(
     }
 
     const patched =
-      body.slice(0, firstIndex) +
-      new_string +
-      body.slice(firstIndex + old_string.length)
+      body.slice(0, firstIndex) + new_string + body.slice(firstIndex + old_string.length)
 
     const res = await postJSON('/notes', {
       ...existingNote,
@@ -515,21 +493,17 @@ server.registerTool(
   }
 )
 
-server.registerTool(
-  'list-tags',
-  { description: 'Retrieve a list of all tags' },
-  async () => {
-    const tags: Tag[] = await fetchJSON('/tags')
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(tags, null, 2)
-        }
-      ]
-    }
+server.registerTool('list-tags', { description: 'Retrieve a list of all tags' }, async () => {
+  const tags: Tag[] = await fetchJSON('/tags')
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(tags, null, 2)
+      }
+    ]
   }
-)
+})
 
 server.registerTool(
   'read-tag',
@@ -564,10 +538,7 @@ server.registerTool(
   {
     description: 'Create a new tag in the database',
     inputSchema: {
-      color: z
-        .enum(TagColors)
-        .default('default')
-        .describe('The color type of the tag'),
+      color: z.enum(TagColors).default('default').describe('The color type of the tag'),
 
       name: z.string().max(64).describe('The name of the tag')
     }
@@ -606,10 +577,7 @@ server.registerTool(
           'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
         ),
 
-      color: z
-        .enum(TagColors)
-        .default('default')
-        .describe('The color type of the tag'),
+      color: z.enum(TagColors).default('default').describe('The color type of the tag'),
 
       name: z.string().max(64).describe('The name of the tag')
     }
