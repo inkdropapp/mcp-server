@@ -560,7 +560,7 @@ server.registerTool(
   'update-tag',
   {
     description:
-      'Update the existing tag in the database. You should retrieve the existing tag with \`list-tags\` first. When updating the tag, you must specify not only the changed fields but also all the un-changed fields.',
+      'Update the existing tag in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you do not need to read the tag first. Call `list-tags` or `read-tag` to find the tag ID.',
     inputSchema: {
       _id: z
         .string()
@@ -570,20 +570,18 @@ server.registerTool(
         .describe(
           'The unique document ID which should start with `tag:` and the remains are randomly generated string'
         ),
-
       _rev: z
         .string()
+        .optional()
         .describe(
-          'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+          'This is a CouchDB specific field. The current MVCC-token/revision of this document. Optional: the server merges your fields into the stored tag, so it is only needed as an optimistic-concurrency guard. Pass it when you have read the tag first and want the update to fail on a conflicting concurrent edit.'
         ),
-
-      color: z.enum(TagColors).default('default').describe('The color type of the tag'),
-
-      name: z.string().max(64).describe('The name of the tag')
+      color: z.enum(TagColors).optional().describe('The color type of the tag'),
+      name: z.string().max(64).optional().describe('The name of the tag')
     }
   },
-  async tagData => {
-    const res = await postJSON(`/tags`, tagData)
+  async ({ _id, ...updateFields }) => {
+    const res = await postJSON(`/${_id}`, updateFields)
     return {
       content: [
         {

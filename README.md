@@ -103,13 +103,13 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
       - `name`: The name of the tag.
     - Optional inputs:
       - `color`: The color type of the tag (`default`, `red`, `orange`, `yellow`, `olive`, `green`, `teal`, `blue`, `violet`, `purple`, `pink`, `brown`, `grey`, `black`). Default: `default`.
-15. **`update-tag`**: Update an existing tag in the database.
+15. **`update-tag`**: Update an existing tag in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the tag first.
     - Required inputs:
       - `_id`: The tag ID. Must start with 'tag:'.
-      - `_rev`: The revision ID (CouchDB MVCC-token).
-      - `name`: The name of the tag.
     - Optional inputs:
-      - `color`: The color type of the tag. Default: `default`.
+      - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
+      - `name`: The name of the tag.
+      - `color`: The color type of the tag. Omit it to keep the tag's current color.
 
 ## Debugging
 
