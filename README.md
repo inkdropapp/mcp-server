@@ -82,16 +82,28 @@ A [Model Context Protocol](https://github.com/modelcontextprotocol) server for t
 9. **`read-book`**: Retrieve a single notebook by its ID.
    - Required inputs:
      - `bookId`: The notebook ID. Must start with 'book:'.
-10. **`list-tags`**: Retrieve a list of all tags.
-11. **`read-tag`**: Retrieve a single tag by its ID.
+10. **`create-book`**: Create a new notebook in the database.
+    - Required inputs:
+      - `name`: The notebook name.
+    - Optional inputs:
+      - `parentBookId`: The ID of the parent notebook. Must start with 'book:'. Omit it to create the notebook at the root level.
+11. **`update-book`**: Update an existing notebook in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the notebook first.
+    - Required inputs:
+      - `_id`: The notebook ID. Must start with 'book:'.
+    - Optional inputs:
+      - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
+      - `name`: The notebook name.
+      - `parentBookId`: The ID of the parent notebook. Pass `null` to move the notebook to the root level.
+12. **`list-tags`**: Retrieve a list of all tags.
+13. **`read-tag`**: Retrieve a single tag by its ID.
     - Required inputs:
       - `tagId`: The tag ID. Must start with 'tag:'.
-12. **`create-tag`**: Create a new tag in the database.
+14. **`create-tag`**: Create a new tag in the database.
     - Required inputs:
       - `name`: The name of the tag.
     - Optional inputs:
       - `color`: The color type of the tag (`default`, `red`, `orange`, `yellow`, `olive`, `green`, `teal`, `blue`, `violet`, `purple`, `pink`, `brown`, `grey`, `black`). Default: `default`.
-13. **`update-tag`**: Update an existing tag in the database.
+15. **`update-tag`**: Update an existing tag in the database.
     - Required inputs:
       - `_id`: The tag ID. Must start with 'tag:'.
       - `_rev`: The revision ID (CouchDB MVCC-token).

@@ -637,6 +637,86 @@ server.registerTool(
   }
 )
 
+server.registerTool(
+  'create-book',
+  {
+    description:
+      'Create a new notebook in the database. To create a nested notebook, pass the parent notebook ID as `parentBookId`. Call `list-notebooks` first to find it.',
+    inputSchema: {
+      name: z.string().min(1).max(64).describe('The notebook name'),
+      parentBookId: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^book:/)
+        .optional()
+        .describe(
+          'The ID of the parent notebook. Omit it to create the notebook at the root level.'
+        )
+    }
+  },
+  async bookData => {
+    const res = await postJSON(`/books`, bookData)
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.registerTool(
+  'update-book',
+  {
+    description:
+      'Update the existing notebook in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you do not need to read the notebook first. Call `list-notebooks` or `read-book` to find the notebook ID.',
+    inputSchema: {
+      _id: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^book:/)
+        .describe(
+          'The unique document ID which should start with `book:` and the remains are randomly generated string'
+        ),
+      _rev: z
+        .string()
+        .optional()
+        .describe(
+          'This is a CouchDB specific field. The current MVCC-token/revision of this document. Optional: the server merges your fields into the stored notebook, so it is only needed as an optimistic-concurrency guard. Pass it when you have read the notebook first and want the update to fail on a conflicting concurrent edit.'
+        ),
+      name: z.string().min(1).max(64).optional().describe('The notebook name'),
+      parentBookId: z
+        .string()
+        .min(6)
+        .max(128)
+        .regex(/^book:/)
+        .nullable()
+        .optional()
+        .describe(
+          'The ID of the parent notebook. Pass `null` to move the notebook to the root level.'
+        )
+    }
+  },
+  async ({ _id, ...updateFields }) => {
+    const res = await postJSON(`/${_id}`, {
+      ...updateFields,
+      updatedAt: +new Date()
+    })
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(res, null, 2)
+        }
+      ]
+    }
+  }
+)
+
 server.registerPrompt(
   'inkdrop-prompt',
   { description: 'Instructions for using the Inkdrop MCP server effectively' },
