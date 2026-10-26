@@ -34,63 +34,67 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
      - `sort`: Sort field (`updatedAt`, `createdAt`, or `title`). Default: `updatedAt`.
      - `descending`: Reverse the order of output. Default: `true`.
    - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
-5. **`create-note`**: Create a new note in the database.
+5. **`list-templates`**: List note templates — your custom templates, followed by the official ones bundled with Inkdrop.
+   - Optional inputs:
+     - `keyword`: Filter templates by fuzzy-matching their titles.
+   - Note: Results include truncated template bodies (200 characters). Use `read-note` to get full content.
+6. **`create-note`**: Create a new note in the database.
    - Required inputs:
-     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash'.
+     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash' or 'template'. Specify 'template' to create a custom note template.
      - `title`: The note title.
      - `body`: The content of the note in Markdown.
    - Optional inputs:
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-6. **`update-note`**: Update an existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.
+7. **`update-note`**: Update an existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
    - Optional inputs:
-     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash'.
+     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash' or 'template'.
      - `title`: The note title.
      - `body`: The content of the note in Markdown.
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-7. **`patch-note`**: Update the body of an existing note by performing an exact string replacement. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
+8. **`patch-note`**: Update the body of an existing note by performing an exact string replacement. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
      - `old_string`: The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.
      - `new_string`: The text to replace `old_string` with. Use an empty string to delete the matched text.
-8. **`list-notebooks`**: Retrieve a list of all notebooks.
-9. **`read-book`**: Retrieve a single notebook by its ID.
-   - Required inputs:
-     - `bookId`: The notebook ID. Must start with 'book:'.
-10. **`create-book`**: Create a new notebook in the database.
+9. **`list-notebooks`**: Retrieve a list of all notebooks.
+10. **`read-book`**: Retrieve a single notebook by its ID.
+    - Required inputs:
+      - `bookId`: The notebook ID. Must start with 'book:'.
+11. **`create-book`**: Create a new notebook in the database.
     - Required inputs:
       - `name`: The notebook name.
     - Optional inputs:
       - `parentBookId`: The ID of the parent notebook. Must start with 'book:'. Omit it to create the notebook at the root level.
-11. **`update-book`**: Update an existing notebook in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the notebook first.
+12. **`update-book`**: Update an existing notebook in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the notebook first.
     - Required inputs:
       - `_id`: The notebook ID. Must start with 'book:'.
     - Optional inputs:
       - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
       - `name`: The notebook name.
       - `parentBookId`: The ID of the parent notebook. Pass `null` to move the notebook to the root level.
-12. **`list-tags`**: Retrieve a list of all tags.
-13. **`read-tag`**: Retrieve a single tag by its ID.
+13. **`list-tags`**: Retrieve a list of all tags.
+14. **`read-tag`**: Retrieve a single tag by its ID.
     - Required inputs:
       - `tagId`: The tag ID. Must start with 'tag:'.
-14. **`create-tag`**: Create a new tag in the database.
+15. **`create-tag`**: Create a new tag in the database.
     - Required inputs:
       - `name`: The name of the tag.
     - Optional inputs:
       - `color`: The color type of the tag (`default`, `red`, `orange`, `yellow`, `olive`, `green`, `teal`, `blue`, `violet`, `purple`, `pink`, `brown`, `grey`, `black`). Default: `default`.
-15. **`update-tag`**: Update an existing tag in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the tag first.
+16. **`update-tag`**: Update an existing tag in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you don't need to read the tag first.
     - Required inputs:
       - `_id`: The tag ID. Must start with 'tag:'.
     - Optional inputs:
       - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
       - `name`: The name of the tag.
       - `color`: The color type of the tag. Omit it to keep the tag's current color.
-16. **`create-file`**: Create a new attachment file in the database from a local image file or from base64 image data. Returns the Markdown to embed the attachment in a note body.
+17. **`create-file`**: Create a new attachment file in the database from a local image file or from base64 image data. Returns the Markdown to embed the attachment in a note body.
     - Required inputs: exactly one of
       - `filePath`: Absolute path to a local image file to attach. Preferred — it keeps the image bytes out of the conversation.
       - `data`: Base64-encoded image data, without a `data:` URI prefix.
@@ -99,7 +103,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
       - `contentType`: The MIME type (`image/png`, `image/jpeg`, `image/jpg`, `image/svg+xml`, `image/gif`, `image/heic`, `image/heif`). Inferred from the `filePath` extension when omitted, so it is required with `data`.
       - `publicIn`: An array of note IDs where the attachment is included. Each must start with 'note:'.
     - Note: Attachments are limited to 10MB.
-17. **`read-file`**: Retrieve an attachment file by its ID. Returns the file metadata, and the image itself when it is a PNG, JPEG or GIF.
+18. **`read-file`**: Retrieve an attachment file by its ID. Returns the file metadata, and the image itself when it is a PNG, JPEG or GIF.
     - Required inputs:
       - `fileId`: The attachment ID. Must start with 'file:'.
     - Optional inputs:

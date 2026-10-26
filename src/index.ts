@@ -257,7 +257,7 @@ You have to retrieve the full note content by calling \`read-note\`.
         .string()
         .optional()
         .describe(
-          `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\``
+          `ID of the notebook. It always starts with 'book:'. You can retrieve a list of notebooks with \`list-notebooks\`. The pseudo-notebooks 'trash' and 'template' are not supported here; use \`list-templates\` for templates`
         ),
       tagIds: z
         .array(z.string())
@@ -308,6 +308,42 @@ You have to retrieve the full note content by calling \`read-note\`.
 )
 
 server.registerTool(
+  'list-templates',
+  {
+    description: `List note templates: your custom templates, followed by the official ones bundled with Inkdrop.
+Templates are notes whose \`bookId\` is \`template\`. Official templates are read-only.
+The result does not include entire template bodies as they are truncated in 200 characters.
+You have to retrieve the full template content by calling \`read-note\`.
+`,
+    inputSchema: {
+      keyword: z
+        .string()
+        .optional()
+        .describe(
+          'Filter templates by fuzzy-matching their titles. Search qualifiers such as `book:` or `tag:` are not supported.'
+        )
+    }
+  },
+  async ({ keyword }) => {
+    const templates: Note[] = await fetchJSON('/templates', { keyword })
+    const summaries = templates.map(template => {
+      return {
+        ...template,
+        body: template.body.substring(0, 200)
+      }
+    })
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(summaries, null, 2)
+        }
+      ]
+    }
+  }
+)
+
+server.registerTool(
   'create-note',
   {
     description: 'Create a new note in the database',
@@ -316,8 +352,8 @@ server.registerTool(
         .string()
         .min(5)
         .max(128)
-        .regex(/^(book:|trash$)/)
-        .describe('The notebook ID'),
+        .regex(/^(book:|trash$|template$)/)
+        .describe('The notebook ID. Specify `template` to create a custom note template'),
 
       title: z.string().max(128).describe('The note title'),
 
@@ -374,9 +410,11 @@ server.registerTool(
         .string()
         .min(5)
         .max(128)
-        .regex(/^(book:|trash$)/)
+        .regex(/^(book:|trash$|template$)/)
         .optional()
-        .describe('The notebook ID'),
+        .describe(
+          'The notebook ID. Specify `template` to turn the note into a custom note template'
+        ),
 
       title: z.string().max(128).optional().describe('The note title'),
 
