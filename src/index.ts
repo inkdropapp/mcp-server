@@ -281,8 +281,8 @@ You have to retrieve the full note content by calling \`read-note\`.
     }
   },
   async ({ bookId, tagIds, keyword, sort, descending, limit }) => {
-    const bookFilter = bookId ? `bookId:${bookId.split(':')[1]}` : ''
-    const tagFilter = tagIds ? tagIds.map(t => `tagId:${t}`).join(' ') : ''
+    const bookFilter = bookId ?? ''
+    const tagFilter = tagIds?.join(' ') ?? ''
     keyword = `${bookFilter} ${tagFilter} ${keyword || ''}`.trim()
     const notes: Note[] = await fetchJSON('/notes', {
       keyword,
