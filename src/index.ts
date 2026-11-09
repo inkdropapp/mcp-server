@@ -173,10 +173,10 @@ You can use special qualifiers to get more accurate results. See the qualifiers 
 - **book**
   \`book:Blog\`: Searches for notes in the 'Blog' notebook.
   \`book:"Desktop App"\`: Searches for notes in the 'Desktop App' notebook.
-- **bookId**
-  \`bookId:kGlLniaV\`: Searches for notes in the notebook ID 'book:kGlLniaV'.
+  \`book:kGlLniaV\`: Searches for notes in the notebook with the ID 'book:kGlLniaV'.
 - **tag**
   \`tag:JavaScript\`: Searches for all notes having the 'JavaScript' tag. Read more about [tags](https://docs.inkdrop.app/manual/write-notes#tag-notes).
+  \`tag:pQ7xYt2R\`: Searches for all notes having the tag with the ID 'tag:pQ7xYt2R'.
 - **status**
   \`status:onHold\`: Searches for all notes with the 'On hold' status. Read more about [statuses](/reference/note-statuses).
 - **title**
