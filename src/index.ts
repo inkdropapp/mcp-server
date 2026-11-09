@@ -18,7 +18,13 @@ import {
 import { z } from 'zod'
 
 import { fetchJSON, postJSON } from './api'
-import { getFileUri, getNoteUri, inferImageContentType, isViewableImageType } from './utils'
+import {
+  applyTextEdits,
+  getFileUri,
+  getNoteUri,
+  inferImageContentType,
+  isViewableImageType
+} from './utils'
 
 const server = new McpServer({
   name: 'Inkdrop',
@@ -463,7 +469,7 @@ server.registerTool(
   'patch-note',
   {
     description:
-      'Update the body of the existing note by performing an exact string replacement. Use this tool to make partial updates to the note body without replacing the entire content. You must first read the note with `read-note` to get the current body, then specify the exact substring to replace.',
+      'Update the body of the existing note by performing one or more exact string replacements. Use this tool to make partial updates to the note body without replacing the entire content. You must first read the note with `read-note` to get the current body, then specify the exact substrings to replace. Edits are applied in order, each against the result of the previous one, and the note is only saved if all of them succeed.',
     inputSchema: {
       _id: z
         .string()
@@ -480,56 +486,46 @@ server.registerTool(
           'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
         ),
 
-      old_string: z
-        .string()
-        .min(1)
-        .describe(
-          'The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.'
-        ),
+      edits: z
+        .array(
+          z.object({
+            old_string: z
+              .string()
+              .min(1)
+              .describe(
+                'The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.'
+              ),
 
-      new_string: z
-        .string()
-        .describe(
-          'The text to replace `old_string` with. Use an empty string to delete the matched text.'
+            new_string: z
+              .string()
+              .describe(
+                'The text to replace `old_string` with. Use an empty string to delete the matched text.'
+              )
+          })
         )
+        .min(1)
+        .describe('The replacements to perform, applied in order.')
     }
   },
-  async ({ _id, _rev, old_string, new_string }) => {
+  async ({ _id, _rev, edits }) => {
     const existingNote = await fetchJSON<Note>(`/${_id}`, { rev: _rev })
-    const body = existingNote.body
 
-    const firstIndex = body.indexOf(old_string)
-    if (firstIndex === -1) {
+    const patchResult = applyTextEdits(existingNote.body, edits)
+    if (!patchResult.ok) {
       return {
         content: [
           {
             type: 'text',
-            text: 'Failed to patch: `old_string` was not found in the note body.'
+            text: `Failed to patch: ${patchResult.error} No edits were saved.`
           }
         ],
         isError: true
       }
     }
-
-    const secondIndex = body.indexOf(old_string, firstIndex + 1)
-    if (secondIndex !== -1) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: 'Failed to patch: `old_string` matches multiple locations in the note body. Provide more surrounding context to make it unique.'
-          }
-        ],
-        isError: true
-      }
-    }
-
-    const patched =
-      body.slice(0, firstIndex) + new_string + body.slice(firstIndex + old_string.length)
 
     const res = await postJSON('/notes', {
       ...existingNote,
-      body: patched,
+      body: patchResult.text,
       updatedAt: +new Date()
     })
     return {

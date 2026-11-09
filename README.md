@@ -56,7 +56,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
      - `body`: The content of the note in Markdown.
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-8. **`patch-note`**: Update the body of an existing note by performing an exact string replacement. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
+8. **`patch-note`**: Update the body of an existing note by performing one or more exact string replacements in a single call. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
