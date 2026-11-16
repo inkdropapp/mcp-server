@@ -46,16 +46,18 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
    - Optional inputs:
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-7. **`update-note`**: Update an existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.
+7. **`update-note`**: Update one or more existing notes in the database. Only the fields you provide will be updated; omitted fields remain unchanged. Each note is saved independently, so a failed update does not roll back the others.
    - Required inputs:
-     - `_id`: The note ID. Must start with 'note:'.
-     - `_rev`: The revision ID (CouchDB MVCC-token).
-   - Optional inputs:
-     - `bookId`: The notebook ID. Must start with 'book:' or be 'trash' or 'template'.
-     - `title`: The note title.
-     - `body`: The content of the note in Markdown.
-     - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
-     - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
+     - `notes`: An array of notes to update. Each item takes:
+       - `_id` (required): The note ID. Must start with 'note:'.
+       - `_rev` (required): The revision ID (CouchDB MVCC-token).
+       - `bookId`: The notebook ID. Must start with 'book:' or be 'trash' or 'template'.
+       - `title`: The note title.
+       - `body`: The content of the note in Markdown.
+       - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
+       - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
+       - `createdAt`: The creation time as a Unix timestamp in milliseconds. Omit it to keep the current value.
+       - `updatedAt`: The last update time as a Unix timestamp in milliseconds. Defaults to the current time.
 8. **`patch-note`**: Update the body of an existing note by performing one or more exact string replacements in a single call. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.

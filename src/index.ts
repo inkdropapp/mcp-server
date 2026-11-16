@@ -391,94 +391,123 @@ server.registerTool(
   }
 )
 
+type NoteUpdate = Partial<Note> & Pick<Note, '_id' | '_rev'>
+
+/**
+ * Merges the given fields into the stored note and saves it.
+ *
+ * @param noteUpdate - The note ID, its current revision, and the fields to change
+ * @returns The response of the local server for the saved note
+ * @throws If the note can't be fetched at that revision or the save is rejected
+ */
+async function updateNote(noteUpdate: NoteUpdate) {
+  const existingNote = await fetchJSON<Note>(`/${noteUpdate._id}`, { rev: noteUpdate._rev })
+
+  return postJSON<{ ok: boolean; id: string; rev: string }>('/notes', {
+    ...existingNote,
+    ...noteUpdate,
+    updatedAt: noteUpdate.updatedAt ?? +new Date()
+  })
+}
+
 server.registerTool(
   'update-note',
   {
     description:
-      'Update the existing note in the database. Only the fields you provide will be updated; omitted fields remain unchanged.',
+      'Update one or more existing notes in the database. Only the fields you provide will be updated; omitted fields remain unchanged. Each note is saved independently, so a failed update does not roll back the others; the result reports the outcome of every note.',
     inputSchema: {
-      _id: z
-        .string()
-        .min(6)
-        .max(128)
-        .regex(/^note:/)
-        .describe(
-          'The unique document ID which should start with `note:` and the remains are randomly generated string'
-        ),
+      notes: z
+        .array(
+          z.object({
+            _id: z
+              .string()
+              .min(6)
+              .max(128)
+              .regex(/^note:/)
+              .describe(
+                'The unique document ID which should start with `note:` and the remains are randomly generated string'
+              ),
 
-      _rev: z
-        .string()
-        .describe(
-          'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-        ),
+            _rev: z
+              .string()
+              .describe(
+                'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
+              ),
 
-      bookId: z
-        .string()
-        .min(5)
-        .max(128)
-        .regex(/^(book:|trash$|template$)/)
-        .optional()
-        .describe(
-          'The notebook ID. Specify `template` to turn the note into a custom note template'
-        ),
+            bookId: z
+              .string()
+              .min(5)
+              .max(128)
+              .regex(/^(book:|trash$|template$)/)
+              .optional()
+              .describe(
+                'The notebook ID. Specify `template` to turn the note into a custom note template'
+              ),
 
-      title: z.string().max(128).optional().describe('The note title'),
+            title: z.string().max(128).optional().describe('The note title'),
 
-      body: z
-        .string()
-        .max(1048576)
-        .optional()
-        .describe(
-          'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
-        ),
+            body: z
+              .string()
+              .max(1048576)
+              .optional()
+              .describe(
+                'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
+              ),
 
-      status: z
-        .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
-        .optional()
-        .describe('The status of the note'),
+            status: z
+              .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
+              .optional()
+              .describe('The status of the note'),
 
-      tags: z
-        .array(z.string().startsWith('tag:'))
-        .optional()
-        .describe(
-          'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
-        ),
+            tags: z
+              .array(z.string().startsWith('tag:'))
+              .optional()
+              .describe(
+                'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+              ),
 
-      createdAt: z
-        .number()
-        .int()
-        .nonnegative()
-        .optional()
-        .describe(
-          'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
-        ),
+            createdAt: z
+              .number()
+              .int()
+              .nonnegative()
+              .optional()
+              .describe(
+                'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
+              ),
 
-      updatedAt: z
-        .number()
-        .int()
-        .nonnegative()
-        .optional()
-        .describe(
-          'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
+            updatedAt: z
+              .number()
+              .int()
+              .nonnegative()
+              .optional()
+              .describe(
+                'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
+              )
+          })
         )
+        .min(1)
+        .describe('The notes to update.')
     }
   },
-  async noteData => {
-    const rev = noteData._rev
-    const existingNote = await fetchJSON<Note>(`/${noteData._id}`, { rev })
-
-    const res = await postJSON(`/notes`, {
-      ...existingNote,
-      ...noteData,
-      updatedAt: noteData.updatedAt ?? +new Date()
-    })
+  async ({ notes }) => {
+    const settledUpdates = await Promise.allSettled(notes.map(updateNote))
+    const results = settledUpdates.map((settledUpdate, noteIndex) =>
+      settledUpdate.status === 'fulfilled'
+        ? settledUpdate.value
+        : {
+            ok: false,
+            id: notes[noteIndex]._id,
+            error: (settledUpdate.reason as Error).message
+          }
+    )
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(res, null, 2)
+          text: JSON.stringify(results, null, 2)
         }
-      ]
+      ],
+      isError: settledUpdates.some(settledUpdate => settledUpdate.status === 'rejected')
     }
   }
 )
