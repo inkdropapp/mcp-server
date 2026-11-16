@@ -442,6 +442,24 @@ server.registerTool(
         .optional()
         .describe(
           'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+        ),
+
+      createdAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
+        ),
+
+      updatedAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
         )
     }
   },
@@ -452,7 +470,7 @@ server.registerTool(
     const res = await postJSON(`/notes`, {
       ...existingNote,
       ...noteData,
-      updatedAt: +new Date()
+      updatedAt: noteData.updatedAt ?? +new Date()
     })
     return {
       content: [
@@ -504,10 +522,28 @@ server.registerTool(
           })
         )
         .min(1)
-        .describe('The replacements to perform, applied in order.')
+        .describe('The replacements to perform, applied in order.'),
+
+      createdAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
+        ),
+
+      updatedAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
+        )
     }
   },
-  async ({ _id, _rev, edits }) => {
+  async ({ _id, _rev, edits, createdAt, updatedAt }) => {
     const existingNote = await fetchJSON<Note>(`/${_id}`, { rev: _rev })
 
     const patchResult = applyTextEdits(existingNote.body, edits)
@@ -526,7 +562,8 @@ server.registerTool(
     const res = await postJSON('/notes', {
       ...existingNote,
       body: patchResult.text,
-      updatedAt: +new Date()
+      createdAt: createdAt ?? existingNote.createdAt,
+      updatedAt: updatedAt ?? +new Date()
     })
     return {
       content: [
@@ -742,13 +779,29 @@ server.registerTool(
         .optional()
         .describe(
           'The ID of the parent notebook. Pass `null` to move the notebook to the root level.'
+        ),
+      createdAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the notebook was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
+        ),
+      updatedAt: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .describe(
+          'The date time when the notebook was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
         )
     }
   },
   async ({ _id, ...updateFields }) => {
     const res = await postJSON(`/${_id}`, {
       ...updateFields,
-      updatedAt: +new Date()
+      updatedAt: updateFields.updatedAt ?? +new Date()
     })
     return {
       content: [
