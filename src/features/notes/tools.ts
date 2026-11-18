@@ -5,7 +5,18 @@ import { z } from 'zod'
 
 import { fetchJSON, postJSON } from '../../client/local-server.js'
 import { describeNoteLines, extractNoteLines, parseNoteReference } from './note-anchor.js'
-import { sourceTemplateIdSchema } from './note-schemas.js'
+import {
+  noteBodySchema,
+  noteBookIdSchema,
+  noteCreatedAtSchema,
+  noteIdSchema,
+  noteRevSchema,
+  noteStatusSchema,
+  noteTagsSchema,
+  noteTitleSchema,
+  noteUpdatedAtSchema,
+  sourceTemplateIdSchema
+} from './note-schemas.js'
 import { updateNote } from './note-update.js'
 import { applyTextEdits } from './text-edits.js'
 
@@ -333,30 +344,18 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
     {
       description: 'Create a new note in the database',
       inputSchema: {
-        bookId: z
-          .string()
-          .min(5)
-          .max(128)
-          .regex(/^(book:|trash$|template$)/)
-          .describe('The notebook ID. Specify `template` to create a custom note template'),
-
-        title: z.string().max(128).describe('The note title'),
-
-        body: z.string().max(1048576).describe('The content of the note represented with Markdown'),
-
-        status: z
-          .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
-          .optional()
-          .describe('The status of the note'),
-
-        tags: z
-          .array(z.string().startsWith('tag:'))
+        bookId: noteBookIdSchema.describe(
+          'The notebook ID. Specify `template` to create a custom note template'
+        ),
+        title: noteTitleSchema,
+        body: noteBodySchema.describe('The content of the note represented with Markdown'),
+        status: noteStatusSchema.optional(),
+        tags: noteTagsSchema.optional(),
+        sourceTemplateId: sourceTemplateIdSchema
           .optional()
           .describe(
-            'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
-          ),
-
-        sourceTemplateId: sourceTemplateIdSchema
+            'The ID of the template the note is created from, as returned by `list-templates`. It always starts with `note:`. Pass it when you create a note from a template, so that `read-note` can link the note back to its fill-out instructions.'
+          )
       }
     },
     async noteData => {
@@ -381,72 +380,28 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
         notes: z
           .array(
             z.object({
-              _id: z
-                .string()
-                .min(6)
-                .max(128)
-                .regex(/^note:/)
-                .describe(
-                  'The unique document ID which should start with `note:` and the remains are randomly generated string'
-                ),
-
-              _rev: z
-                .string()
-                .describe(
-                  'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-                ),
-
-              bookId: z
-                .string()
-                .min(5)
-                .max(128)
-                .regex(/^(book:|trash$|template$)/)
+              _id: noteIdSchema,
+              _rev: noteRevSchema,
+              bookId: noteBookIdSchema
                 .optional()
                 .describe(
                   'The notebook ID. Specify `template` to turn the note into a custom note template'
                 ),
-
-              title: z.string().max(128).optional().describe('The note title'),
-
-              body: z
-                .string()
-                .max(1048576)
+              title: noteTitleSchema.optional(),
+              body: noteBodySchema
                 .optional()
                 .describe(
                   'The content of the note in Markdown. NOTE: Do not escape special characters like `\\n`.'
                 ),
-
-              status: z
-                .enum(['none', 'active', 'onHold', 'completed', 'dropped'])
-                .optional()
-                .describe('The status of the note'),
-
-              tags: z
-                .array(z.string().startsWith('tag:'))
+              status: noteStatusSchema.optional(),
+              tags: noteTagsSchema.optional(),
+              sourceTemplateId: sourceTemplateIdSchema
                 .optional()
                 .describe(
-                  'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
+                  'The ID of the template the note was created from, as returned by `list-templates`. It always starts with `note:`.'
                 ),
-
-              sourceTemplateId: sourceTemplateIdSchema,
-
-              createdAt: z
-                .number()
-                .int()
-                .nonnegative()
-                .optional()
-                .describe(
-                  'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
-                ),
-
-              updatedAt: z
-                .number()
-                .int()
-                .nonnegative()
-                .optional()
-                .describe(
-                  'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
-                )
+              createdAt: noteCreatedAtSchema.optional(),
+              updatedAt: noteUpdatedAtSchema.optional()
             })
           )
           .min(1)
@@ -482,21 +437,8 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
       description:
         'Update the body of the existing note by performing one or more exact string replacements. Use this tool to make partial updates to the note body without replacing the entire content. You must first read the note with `read-note` to get the current body, then specify the exact substrings to replace. Edits are applied in order, each against the result of the previous one, and the note is only saved if all of them succeed.',
       inputSchema: {
-        _id: z
-          .string()
-          .min(6)
-          .max(128)
-          .regex(/^note:/)
-          .describe(
-            'The unique document ID which should start with `note:` and the remains are randomly generated string'
-          ),
-
-        _rev: z
-          .string()
-          .describe(
-            'This is a CouchDB specific field. The current MVCC-token/revision of this document (mandatory and immutable).'
-          ),
-
+        _id: noteIdSchema,
+        _rev: noteRevSchema,
         edits: z
           .array(
             z.object({
@@ -506,7 +448,6 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
                 .describe(
                   'The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.'
                 ),
-
               new_string: z
                 .string()
                 .describe(
@@ -516,24 +457,8 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
           )
           .min(1)
           .describe('The replacements to perform, applied in order.'),
-
-        createdAt: z
-          .number()
-          .int()
-          .nonnegative()
-          .optional()
-          .describe(
-            'The date time when the note was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
-          ),
-
-        updatedAt: z
-          .number()
-          .int()
-          .nonnegative()
-          .optional()
-          .describe(
-            'The date time when the note was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'
-          )
+        createdAt: noteCreatedAtSchema.optional(),
+        updatedAt: noteUpdatedAtSchema.optional()
       }
     },
     async ({ _id, _rev, edits, createdAt, updatedAt }) => {

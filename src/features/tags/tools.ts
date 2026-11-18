@@ -1,8 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { TAG_COLOR, type Tag } from 'inkdrop-model'
+import { TAG_COLOR, TAG_DOCID_PREFIX, type Tag } from 'inkdrop-model'
 import { z } from 'zod'
 
 import { fetchJSON, postJSON } from '../../client/local-server.js'
+import { documentIdSchema, revisionSchema } from '../../utils/document-fields.js'
 
 const TagColors = Object.values(TAG_COLOR) as [string, ...string[]]
 
@@ -79,16 +80,10 @@ export function registerTagTools(server: McpServer): void {
       description:
         'Update the existing tag in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you do not need to read the tag first. Call `list-tags` or `read-tag` to find the tag ID.',
       inputSchema: {
-        _id: z
-          .string()
-          .min(6)
-          .max(128)
-          .regex(/^tag:/)
-          .describe(
-            'The unique document ID which should start with `tag:` and the remains are randomly generated string'
-          ),
-        _rev: z
-          .string()
+        _id: documentIdSchema(TAG_DOCID_PREFIX).describe(
+          'The unique document ID which should start with `tag:` and the remains are randomly generated string'
+        ),
+        _rev: revisionSchema
           .optional()
           .describe(
             'This is a CouchDB specific field. The current MVCC-token/revision of this document. Optional: the server merges your fields into the stored tag, so it is only needed as an optimistic-concurrency guard. Pass it when you have read the tag first and want the update to fail on a conflicting concurrent edit.'

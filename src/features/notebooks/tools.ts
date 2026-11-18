@@ -1,8 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import type { Book } from 'inkdrop-model'
+import { BOOK_DOCID_PREFIX, type Book } from 'inkdrop-model'
 import { z } from 'zod'
 
 import { fetchJSON, postJSON } from '../../client/local-server.js'
+import { documentIdSchema, revisionSchema, timestampSchema } from '../../utils/document-fields.js'
 
 /**
  * Registers the tools that read, create and update notebooks.
@@ -59,11 +60,7 @@ export function registerNotebookTools(server: McpServer): void {
         'Create a new notebook in the database. To create a nested notebook, pass the parent notebook ID as `parentBookId`. Call `list-notebooks` first to find it.',
       inputSchema: {
         name: z.string().min(1).max(64).describe('The notebook name'),
-        parentBookId: z
-          .string()
-          .min(6)
-          .max(128)
-          .regex(/^book:/)
+        parentBookId: documentIdSchema(BOOK_DOCID_PREFIX)
           .optional()
           .describe(
             'The ID of the parent notebook. Omit it to create the notebook at the root level.'
@@ -89,43 +86,27 @@ export function registerNotebookTools(server: McpServer): void {
       description:
         'Update the existing notebook in the database. Only the fields you provide will be updated; omitted fields remain unchanged, so you do not need to read the notebook first. Call `list-notebooks` or `read-book` to find the notebook ID.',
       inputSchema: {
-        _id: z
-          .string()
-          .min(6)
-          .max(128)
-          .regex(/^book:/)
-          .describe(
-            'The unique document ID which should start with `book:` and the remains are randomly generated string'
-          ),
-        _rev: z
-          .string()
+        _id: documentIdSchema(BOOK_DOCID_PREFIX).describe(
+          'The unique document ID which should start with `book:` and the remains are randomly generated string'
+        ),
+        _rev: revisionSchema
           .optional()
           .describe(
             'This is a CouchDB specific field. The current MVCC-token/revision of this document. Optional: the server merges your fields into the stored notebook, so it is only needed as an optimistic-concurrency guard. Pass it when you have read the notebook first and want the update to fail on a conflicting concurrent edit.'
           ),
         name: z.string().min(1).max(64).optional().describe('The notebook name'),
-        parentBookId: z
-          .string()
-          .min(6)
-          .max(128)
-          .regex(/^book:/)
+        parentBookId: documentIdSchema(BOOK_DOCID_PREFIX)
           .nullable()
           .optional()
           .describe(
             'The ID of the parent notebook. Pass `null` to move the notebook to the root level.'
           ),
-        createdAt: z
-          .number()
-          .int()
-          .nonnegative()
+        createdAt: timestampSchema
           .optional()
           .describe(
             'The date time when the notebook was created, represented with Unix timestamps in milliseconds. Omit it to keep the current value.'
           ),
-        updatedAt: z
-          .number()
-          .int()
-          .nonnegative()
+        updatedAt: timestampSchema
           .optional()
           .describe(
             'The date time when the notebook was last updated, represented with Unix timestamps in milliseconds. Defaults to the current time.'

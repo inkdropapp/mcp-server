@@ -7,10 +7,6 @@ describe('sourceTemplateIdSchema', () => {
     expect(sourceTemplateIdSchema.parse('note:abc123')).toBe('note:abc123')
   })
 
-  test('accepts an omitted value', () => {
-    expect(sourceTemplateIdSchema.parse(undefined)).toBeUndefined()
-  })
-
   test('rejects an ID of another document type', () => {
     expect(sourceTemplateIdSchema.safeParse('book:abc123').success).toBe(false)
   })
