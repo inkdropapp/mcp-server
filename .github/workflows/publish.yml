@@ -49,6 +49,9 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Publish
         # prepublishOnly builds dist/ with tsc, so the typecheck runs here.
         run: npm publish
