@@ -10,12 +10,13 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
 
 ### Tools
 
-1. **`read-note`**: Retrieve the complete contents of the note by its ID from the database.
+1. **`read-note`**: Retrieve the complete contents of the note by its ID or its note link from the database.
    - Required inputs:
-     - `noteId`: The ID of the note to retrieve. It can be found as `_id` in the note docs. It always starts with `note:`.
+     - `noteId`: The ID of the note to retrieve, or a note link. The ID can be found as `_id` in the note docs and always starts with `note:`. A note link looks like `inkdrop://note/<id>`, optionally followed by a line anchor: `#L5` (one line) or `#L5-L8` (a line range).
    - Optional inputs:
      - `includeTemplate`: When `true` and the note has a `sourceTemplateId`, also fetch that template and embed its body (fill-out instructions and examples) as an extra text block. Default: `false`.
    - Note: If the note was created from a template, the response includes a resource link to its source template, whose body holds the fill-out instructions and examples.
+   - Note: With a line anchor, the returned `body` holds only those lines, and an extra text block says which lines they are. Lines past the end of the note are clamped to the last line. A heading anchor (`#slug`) is not resolved: the whole note is returned.
 2. **`read-backlinks`**: Retrieve backlinks for a note — the notes that link to it.
    - Required inputs:
      - `noteId`: The ID of the note to find backlinks for. It always starts with `note:`.

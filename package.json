@@ -2,6 +2,7 @@
   "name": "@inkdropapp/mcp-server",
   "version": "1.8.0",
   "description": "Inkdrop Model Context Protocol Server",
+  "type": "module",
   "bin": {
     "inkdrop-mcp-server": "dist/index.js"
   },
@@ -12,7 +13,7 @@
     "watch": "tsc --watch",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "bun test"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   "author": "Takuya Matsuyama<contact@inkdrop.app>",
   "license": "Apache-2.0",
   "dependencies": {
+    "@inkdropapp/protocol-utils": "^1.0.1",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "ajv": "^8.20.0",
     "inkdrop-model": "^3.0.1",
@@ -33,7 +35,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
-    "oxfmt": "^0.76.0",
+    "oxfmt": "^0.78.0",
     "typescript": "^7.0.2"
   }
 }
