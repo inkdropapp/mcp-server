@@ -59,7 +59,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
        - `body`: The content of the note in Markdown.
        - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
        - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
-       - `sourceTemplateId`: The ID of the template the note was created from. Must start with 'note:'.
+       - `sourceTemplateId`: The ID of the template the note was created from. Must start with 'note:'. Pass `null` to remove the link.
        - `createdAt`: The creation time as a Unix timestamp in milliseconds. Omit it to keep the current value.
        - `updatedAt`: The last update time as a Unix timestamp in milliseconds. Defaults to the current time.
 8. **`patch-note`**: Update the body of an existing note by performing one or more exact string replacements in a single call. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.

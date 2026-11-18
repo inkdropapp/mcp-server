@@ -55,6 +55,6 @@ export const noteUpdatedAtSchema = timestampSchema.describe(
 
 /**
  * The ID of the template a note was created from.
- * It has no description because each tool words it differently.
+ * It has no description because only `update-note` can clear it, so each tool words it differently.
  */
 export const sourceTemplateIdSchema = noteIdFormatSchema

@@ -396,9 +396,10 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
               status: noteStatusSchema.optional(),
               tags: noteTagsSchema.optional(),
               sourceTemplateId: sourceTemplateIdSchema
+                .nullable()
                 .optional()
                 .describe(
-                  'The ID of the template the note was created from, as returned by `list-templates`. It always starts with `note:`.'
+                  'The ID of the template the note was created from, as returned by `list-templates`. It always starts with `note:`. Pass `null` to remove the link to the template. Omit it to keep the current value.'
                 ),
               createdAt: noteCreatedAtSchema.optional(),
               updatedAt: noteUpdatedAtSchema.optional()

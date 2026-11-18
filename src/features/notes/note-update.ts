@@ -2,8 +2,12 @@ import type { Note } from 'inkdrop-model'
 
 import { fetchJSON, postJSON } from '../../client/local-server.js'
 
-/** The fields to change on a note, with the ID and current revision that identify it. */
-export type NoteUpdate = Partial<Note> & Pick<Note, '_id' | '_rev'>
+/**
+ * The fields to change on a note, with the ID and current revision that identify it.
+ * A `null` `sourceTemplateId` removes the note's link to its template.
+ */
+export type NoteUpdate = Partial<Omit<Note, 'sourceTemplateId'>> &
+  Pick<Note, '_id' | '_rev'> & { sourceTemplateId?: string | null }
 
 /**
  * Merges the given fields into the stored note and saves it.
