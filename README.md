@@ -27,13 +27,13 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
    - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
    - Supports advanced search qualifiers like `book:`, `tag:`, `status:`, `title:`, etc.
 4. **`list-notes`**: List all notes with specified conditions.
-   - Required inputs:
-     - `bookId`: The notebook ID. It always starts with 'book:'.
    - Optional inputs:
+     - `bookId`: The notebook ID. It always starts with 'book:'.
      - `tagIds`: An array of tag IDs to filter. Each starts with 'tag:'.
      - `keyword`: Keyword to filter notes.
      - `sort`: Sort field (`updatedAt`, `createdAt`, or `title`). Default: `updatedAt`.
      - `descending`: Reverse the order of output. Default: `true`.
+     - `limit`: The maximum number of notes to return. Default: `100`.
    - Note: Results include truncated note bodies (200 characters). Use `read-note` to get full content.
 5. **`list-templates`**: List note templates — your custom templates, followed by the official ones bundled with Inkdrop.
    - Optional inputs:
@@ -66,8 +66,12 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
    - Required inputs:
      - `_id`: The note ID. Must start with 'note:'.
      - `_rev`: The revision ID (CouchDB MVCC-token).
-     - `old_string`: The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.
-     - `new_string`: The text to replace `old_string` with. Use an empty string to delete the matched text.
+     - `edits`: An array of replacements, applied in order, each against the result of the previous one. The note is saved only if all of them succeed. Each item takes:
+       - `old_string` (required): The exact text to find in the note body. Must match exactly one occurrence. Include enough surrounding context to ensure a unique match.
+       - `new_string` (required): The text to replace `old_string` with. Use an empty string to delete the matched text.
+   - Optional inputs:
+     - `createdAt`: The creation time as a Unix timestamp in milliseconds. Omit it to keep the current value.
+     - `updatedAt`: The last update time as a Unix timestamp in milliseconds. Defaults to the current time.
 9. **`list-notebooks`**: Retrieve a list of all notebooks.
 10. **`read-book`**: Retrieve a single notebook by its ID.
     - Required inputs:
@@ -84,6 +88,8 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
       - `_rev`: The revision ID (CouchDB MVCC-token). Only needed as an optimistic-concurrency guard — pass it to make the update fail on a conflicting concurrent edit.
       - `name`: The notebook name.
       - `parentBookId`: The ID of the parent notebook. Pass `null` to move the notebook to the root level.
+      - `createdAt`: The creation time as a Unix timestamp in milliseconds. Omit it to keep the current value.
+      - `updatedAt`: The last update time as a Unix timestamp in milliseconds. Defaults to the current time.
 13. **`list-tags`**: Retrieve a list of all tags.
 14. **`read-tag`**: Retrieve a single tag by its ID.
     - Required inputs:
