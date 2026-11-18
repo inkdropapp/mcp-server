@@ -39,6 +39,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
    - Optional inputs:
      - `keyword`: Filter templates by fuzzy-matching their titles.
    - Note: Results include truncated template bodies (200 characters). Use `read-note` to get full content.
+   - Note: When creating a note from a template, pass the template's `_id` as `sourceTemplateId` to `create-note`.
 6. **`create-note`**: Create a new note in the database.
    - Required inputs:
      - `bookId`: The notebook ID. Must start with 'book:' or be 'trash' or 'template'. Specify 'template' to create a custom note template.
@@ -47,6 +48,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
    - Optional inputs:
      - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
      - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
+     - `sourceTemplateId`: The ID of the template the note is created from. Must start with 'note:'.
 7. **`update-note`**: Update one or more existing notes in the database. Only the fields you provide will be updated; omitted fields remain unchanged. Each note is saved independently, so a failed update does not roll back the others.
    - Required inputs:
      - `notes`: An array of notes to update. Each item takes:
@@ -57,6 +59,7 @@ Read [the docs here](https://docs.inkdrop.app/reference/mcp-server).
        - `body`: The content of the note in Markdown.
        - `status`: The note status (`none`, `active`, `onHold`, `completed`, `dropped`).
        - `tags`: An array of tag IDs to assign to the note. Each must start with 'tag:'.
+       - `sourceTemplateId`: The ID of the template the note was created from. Must start with 'note:'.
        - `createdAt`: The creation time as a Unix timestamp in milliseconds. Omit it to keep the current value.
        - `updatedAt`: The last update time as a Unix timestamp in milliseconds. Defaults to the current time.
 8. **`patch-note`**: Update the body of an existing note by performing one or more exact string replacements in a single call. More efficient than `update-note` for small edits to large notes as it saves tokens. You must first read the note with `read-note` to get the current body.

@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { fetchJSON, postJSON } from '../../client/local-server.js'
 import { describeNoteLines, extractNoteLines, parseNoteReference } from './note-anchor.js'
+import { sourceTemplateIdSchema } from './note-schemas.js'
 import { updateNote } from './note-update.js'
 import { applyTextEdits } from './text-edits.js'
 
@@ -297,6 +298,7 @@ You have to retrieve the full note content by calling \`read-note\`.
 Templates are notes whose \`bookId\` is \`template\`. Official templates are read-only.
 The result does not include entire template bodies as they are truncated in 200 characters.
 You have to retrieve the full template content by calling \`read-note\`.
+When you create a note from a template, pass the template's \`_id\` as \`sourceTemplateId\` to \`create-note\`.
 `,
       inputSchema: {
         keyword: z
@@ -352,7 +354,9 @@ You have to retrieve the full template content by calling \`read-note\`.
           .optional()
           .describe(
             'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
-          )
+          ),
+
+        sourceTemplateId: sourceTemplateIdSchema
       }
     },
     async noteData => {
@@ -423,6 +427,8 @@ You have to retrieve the full template content by calling \`read-note\`.
                 .describe(
                   'An array of tag IDs to assign to the note. Call `list-tags` or `read-tag` to retrieve available tags. You can create a new tag with `create-tag` tool if necessary.'
                 ),
+
+              sourceTemplateId: sourceTemplateIdSchema,
 
               createdAt: z
                 .number()
