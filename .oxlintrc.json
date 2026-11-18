@@ -1,0 +1,54 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "prefer-const": "error",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "ignorePatterns": ["node_modules/**", "dist/**"],
+  "overrides": [
+    {
+      "files": ["src/features/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^(\\.\\./[^./][^/]*/|(\\.\\./)+features/)",
+                "message": "A feature must not import another feature. Move what both need to src/utils if it is domain-free, or pass it in from src/index.ts."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/utils/**", "src/client/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^(\\.\\.?/)+features(/|$)",
+                "message": "Shared code must not import a feature. Keep feature-specific code in its folder under src/features."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

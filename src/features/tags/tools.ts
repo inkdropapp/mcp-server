@@ -32,7 +32,7 @@ export function registerTagTools(server: McpServer): void {
         tagId: z
           .string()
           .describe(
-            'ID of the tag to retrieve. It can be found as `_id` in the tag docs. It always starts with \`tag:\`.'
+            'ID of the tag to retrieve. It can be found as `_id` in the tag docs. It always starts with `tag:`.'
           )
       }
     },

@@ -34,7 +34,7 @@ export function registerNotebookTools(server: McpServer): void {
         bookId: z
           .string()
           .describe(
-            'ID of the book to retrieve. It can be found as `_id` in the book docs. It always starts with \`book:\`.'
+            'ID of the book to retrieve. It can be found as `_id` in the book docs. It always starts with `book:`.'
           )
       }
     },

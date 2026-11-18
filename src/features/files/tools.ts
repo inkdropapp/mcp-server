@@ -155,7 +155,7 @@ export function registerFileTools(server: McpServer): void {
         fileId: z
           .string()
           .describe(
-            'ID of the attachment to retrieve. It can be found as `_id` in the file docs. It always starts with \`file:\`.'
+            'ID of the attachment to retrieve. It can be found as `_id` in the file docs. It always starts with `file:`.'
           ),
         outputPath: z
           .string()

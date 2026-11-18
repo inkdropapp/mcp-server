@@ -30,7 +30,7 @@ export function registerNoteTools(server: McpServer): void {
         noteId: z
           .string()
           .describe(
-            'ID of the note to retrieve, or a note link. The ID can be found as `_id` in the note docs and always starts with \`note:\`. ' +
+            'ID of the note to retrieve, or a note link. The ID can be found as `_id` in the note docs and always starts with `note:`. ' +
               'A note link looks like `inkdrop://note/<id>`, optionally followed by `#L5` (one line) or `#L5-L8` (a line range) to read only those lines.'
           ),
         includeTemplate: z
@@ -104,7 +104,7 @@ Backlinks are found by searching all note bodies for the note's link URI.`,
         noteId: z
           .string()
           .describe(
-            'ID of the note to find backlinks for. It can be found as `_id` in the note docs. It always starts with \`note:\`.'
+            'ID of the note to find backlinks for. It can be found as `_id` in the note docs. It always starts with `note:`.'
           )
       }
     },

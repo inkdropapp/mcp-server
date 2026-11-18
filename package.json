@@ -13,6 +13,7 @@
     "watch": "tsc --watch",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "lint": "oxlint",
     "test": "bun test"
   },
   "repository": {
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
     "typescript": "^7.0.2"
   }
 }
