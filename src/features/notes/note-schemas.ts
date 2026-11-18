@@ -1,4 +1,4 @@
-import { NOTE_DOCID_PREFIX, TAG_DOCID_PREFIX } from 'inkdrop-model'
+import { NOTE_DOCID_PREFIX, NOTE_TITLE_MAX_LENGTH, TAG_DOCID_PREFIX } from 'inkdrop-model'
 import { z } from 'zod'
 
 import { documentIdSchema, revisionSchema, timestampSchema } from '../../utils/document-fields.js'
@@ -26,7 +26,7 @@ export const noteBookIdSchema = z
   .regex(/^(book:|trash$|template$)/)
 
 /** The title of a note. */
-export const noteTitleSchema = z.string().max(128).describe('The note title')
+export const noteTitleSchema = z.string().max(NOTE_TITLE_MAX_LENGTH).describe('The note title')
 
 /** The Markdown body of a note. It has no description because each tool words it differently. */
 export const noteBodySchema = z.string().max(1048576)
