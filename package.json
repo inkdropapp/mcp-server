@@ -2,10 +2,21 @@
   "name": "@inkdropapp/mcp-server",
   "version": "1.8.0",
   "description": "Inkdrop Model Context Protocol Server",
-  "type": "module",
+  "keywords": [
+    "Claude",
+    "Inkdrop",
+    "MCP"
+  ],
+  "license": "Apache-2.0",
+  "author": "Takuya Matsuyama<contact@inkdrop.app>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkdropapp/mcp-server.git"
+  },
   "bin": {
     "inkdrop-mcp-server": "dist/index.js"
   },
+  "type": "module",
   "scripts": {
     "start": "bun src/index.ts",
     "build": "tsc && chmod +x dist/*.js",
@@ -17,17 +28,6 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/inkdropapp/mcp-server.git"
-  },
-  "keywords": [
-    "Inkdrop",
-    "MCP",
-    "Claude"
-  ],
-  "author": "Takuya Matsuyama<contact@inkdrop.app>",
-  "license": "Apache-2.0",
   "dependencies": {
     "@inkdropapp/protocol-utils": "^1.0.1",
     "@modelcontextprotocol/sdk": "^1.32.2",
@@ -36,9 +36,11 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@nkzw/oxlint-config": "^3.0.0",
     "@types/node": "^26.6.6",
     "oxfmt": "^0.78.0",
-    "oxlint": "^1.93.0",
+    "oxlint": "^1.94.0",
+    "tsrs": "7.1.0-beta.tsrs3",
     "typescript": "^7.0.2"
   }
 }

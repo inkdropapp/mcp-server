@@ -29,7 +29,7 @@ export const noteBookIdSchema = z
 export const noteTitleSchema = z.string().max(NOTE_TITLE_MAX_LENGTH).describe('The note title')
 
 /** The Markdown body of a note. It has no description because each tool words it differently. */
-export const noteBodySchema = z.string().max(1048576)
+export const noteBodySchema = z.string().max(1_048_576)
 
 /** The task status of a note. */
 export const noteStatusSchema = z

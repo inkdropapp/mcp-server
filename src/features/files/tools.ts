@@ -10,7 +10,7 @@ import { z } from 'zod'
 import { fetchJSON, postJSON } from '../../client/local-server.js'
 import { inferImageContentType, isViewableImageType } from './image-type.js'
 
-const ImageFileTypes = [...supportedImageFileTypes] as [string, ...string[]]
+const ImageFileTypes = [...supportedImageFileTypes] as [string, ...Array<string>]
 
 /**
  * Registers the tools that create and read attachment files.
@@ -71,12 +71,12 @@ export function registerFileTools(server: McpServer): void {
       if (filePath !== undefined) {
         try {
           buffer = await readFile(filePath)
-        } catch (e) {
+        } catch (error) {
           return {
             content: [
               {
                 type: 'text',
-                text: `Failed to read the file at ${filePath}: ${(e as Error).message}`
+                text: `Failed to read the file at ${filePath}: ${(error as Error).message}`
               }
             ],
             isError: true
@@ -173,7 +173,9 @@ export function registerFileTools(server: McpServer): void {
       }
     },
     async ({ fileId, outputPath, includeImage }) => {
-      if (!fileId.startsWith('file:')) fileId = `file:${fileId}`
+      if (!fileId.startsWith('file:')) {
+        fileId = `file:${fileId}`
+      }
       const needsData = includeImage || outputPath !== undefined
       const file = await fetchJSON<IDFile>(`/${fileId}`, {
         attachments: needsData ? true : undefined
@@ -184,7 +186,9 @@ export function registerFileTools(server: McpServer): void {
         typeof _attachments?.index?.data === 'string' ? _attachments.index.data : undefined
 
       const attachmentBlock = async () => {
-        if (!needsData) return []
+        if (!needsData) {
+          return []
+        }
         if (!base64) {
           return [
             {

@@ -15,7 +15,7 @@ export function registerNotebookTools(server: McpServer): void {
     'list-notebooks',
     { description: 'Retrieve a list of all notebooks' },
     async () => {
-      const books: Book[] = await fetchJSON('/books')
+      const books: Array<Book> = await fetchJSON('/books')
       return {
         content: [
           {
@@ -40,7 +40,9 @@ export function registerNotebookTools(server: McpServer): void {
       }
     },
     async ({ bookId }) => {
-      if (!bookId.startsWith('book:')) bookId = `book:${bookId}`
+      if (!bookId.startsWith('book:')) {
+        bookId = `book:${bookId}`
+      }
       const book: Book = await fetchJSON(`/${bookId}`, {})
       return {
         content: [

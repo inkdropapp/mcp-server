@@ -120,9 +120,11 @@ Backlinks are found by searching all note bodies for the note's link URI.`,
       }
     },
     async ({ noteId }) => {
-      if (!noteId.startsWith('note:')) noteId = `note:${noteId}`
+      if (!noteId.startsWith('note:')) {
+        noteId = `note:${noteId}`
+      }
       const noteLink = getNoteUri(noteId)
-      const backlinks: Note[] = await fetchJSON('/notes', {
+      const backlinks: Array<Note> = await fetchJSON('/notes', {
         keyword: noteLink,
         limit: 100
       })
@@ -222,11 +224,11 @@ Note that you can't specify excluding modifiers only without including condition
       }
     },
     async ({ keyword }) => {
-      const notes: Note[] = await fetchJSON('/notes', { keyword, limit: 10 })
+      const notes: Array<Note> = await fetchJSON('/notes', { keyword, limit: 10 })
       const summaries = notes.map(note => {
         return {
           ...note,
-          body: note.body.substring(0, 200)
+          body: note.body.slice(0, 200)
         }
       })
       return {
@@ -279,7 +281,7 @@ You have to retrieve the full note content by calling \`read-note\`.
       const bookFilter = bookId ?? ''
       const tagFilter = tagIds?.join(' ') ?? ''
       keyword = `${bookFilter} ${tagFilter} ${keyword || ''}`.trim()
-      const notes: Note[] = await fetchJSON('/notes', {
+      const notes: Array<Note> = await fetchJSON('/notes', {
         keyword,
         sort,
         descending,
@@ -288,7 +290,7 @@ You have to retrieve the full note content by calling \`read-note\`.
       const summaries = notes.map(note => {
         return {
           ...note,
-          body: note.body.substring(0, 200)
+          body: note.body.slice(0, 200)
         }
       })
       return {
@@ -321,11 +323,11 @@ When you create a note from a template, pass the template's \`_id\` as \`sourceT
       }
     },
     async ({ keyword }) => {
-      const templates: Note[] = await fetchJSON('/templates', { keyword })
+      const templates: Array<Note> = await fetchJSON('/templates', { keyword })
       const summaries = templates.map(template => {
         return {
           ...template,
-          body: template.body.substring(0, 200)
+          body: template.body.slice(0, 200)
         }
       })
       return {

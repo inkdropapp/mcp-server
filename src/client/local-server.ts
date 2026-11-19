@@ -11,15 +11,20 @@ function getAuthHeaders() {
   }
 }
 
-export function buildUrl(path: string, qs: Record<string, any> = {}): string {
+/** Query string parameters. A `null` or `undefined` value leaves the parameter out. */
+export type QueryParams = Record<string, string | number | boolean | null | undefined>
+
+export function buildUrl(path: string, qs: QueryParams = {}): string {
   const url = new URL(path, config.baseUrl)
   for (const [k, v] of Object.entries(qs)) {
-    if (v !== undefined && v !== null) url.searchParams.set(k, String(v))
+    if (v !== undefined && v !== null) {
+      url.searchParams.set(k, String(v))
+    }
   }
   return url.toString()
 }
 
-export async function fetchJSON<T = any>(path: string, qs: Record<string, any> = {}): Promise<T> {
+export async function fetchJSON<T = unknown>(path: string, qs: QueryParams = {}): Promise<T> {
   const url = buildUrl(path, qs)
   const resp = await fetch(url, { headers: getAuthHeaders() })
   if (!resp.ok) {
@@ -28,7 +33,7 @@ export async function fetchJSON<T = any>(path: string, qs: Record<string, any> =
   return (await resp.json()) as T
 }
 
-export async function postJSON<T = any>(path: string, body: unknown): Promise<T> {
+export async function postJSON<T = unknown>(path: string, body: unknown): Promise<T> {
   const url = buildUrl(path)
   const resp = await fetch(url, {
     method: 'POST',

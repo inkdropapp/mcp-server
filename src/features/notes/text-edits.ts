@@ -17,7 +17,7 @@ export type ApplyTextEditsResult = { ok: true; text: string } | { ok: false; err
  * @param edits - The replacements to perform
  * @returns The patched text, or an error naming the 1-based position of the failing edit
  */
-export function applyTextEdits(text: string, edits: TextEdit[]): ApplyTextEditsResult {
+export function applyTextEdits(text: string, edits: Array<TextEdit>): ApplyTextEditsResult {
   let patchedText = text
 
   for (const [editIndex, { old_string, new_string }] of edits.entries()) {

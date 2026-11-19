@@ -20,14 +20,10 @@ registerTagTools(server)
 registerNotebookTools(server)
 registerFileTools(server)
 
-async function runServer() {
-  const transport = new StdioServerTransport()
-  await server.connect(transport)
-
+try {
+  await server.connect(new StdioServerTransport())
   console.error('Secure MCP Inkdrop Server running on stdio')
-}
-
-runServer().catch(error => {
+} catch (error) {
   console.error('Fatal error running server:', error)
   process.exit(1)
-})
+}

@@ -19,7 +19,7 @@ export function registerNoteResource(server: McpServer): void {
     async (uri, { noteId }) => {
       const id = Array.isArray(noteId) ? noteId[0] : noteId
       const normalizedId = id.startsWith('note:') ? id : `note:${id}`
-      const note: Note[] = await fetchJSON(`/${normalizedId}`, {})
+      const note: Array<Note> = await fetchJSON(`/${normalizedId}`, {})
       return {
         contents: [
           {

@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { fetchJSON, postJSON } from '../../client/local-server.js'
 import { documentIdSchema, revisionSchema } from '../../utils/document-fields.js'
 
-const TagColors = Object.values(TAG_COLOR) as [string, ...string[]]
+const TagColors = Object.values(TAG_COLOR) as [string, ...Array<string>]
 
 /**
  * Registers the tools that read, create and update tags.
@@ -14,7 +14,7 @@ const TagColors = Object.values(TAG_COLOR) as [string, ...string[]]
  */
 export function registerTagTools(server: McpServer): void {
   server.registerTool('list-tags', { description: 'Retrieve a list of all tags' }, async () => {
-    const tags: Tag[] = await fetchJSON('/tags')
+    const tags: Array<Tag> = await fetchJSON('/tags')
     return {
       content: [
         {
@@ -38,7 +38,9 @@ export function registerTagTools(server: McpServer): void {
       }
     },
     async ({ tagId }) => {
-      if (!tagId.startsWith('tag:')) tagId = `tag:${tagId}`
+      if (!tagId.startsWith('tag:')) {
+        tagId = `tag:${tagId}`
+      }
       const tag: Tag = await fetchJSON(`/${tagId}`, {})
       return {
         content: [

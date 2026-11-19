@@ -28,7 +28,7 @@ describe('documentIdSchema', () => {
 
 describe('timestampSchema', () => {
   test('accepts a Unix timestamp in milliseconds', () => {
-    expect(timestampSchema.parse(1700000000000)).toBe(1700000000000)
+    expect(timestampSchema.parse(1_700_000_000_000)).toBe(1_700_000_000_000)
   })
 
   test('rejects a negative number', () => {
