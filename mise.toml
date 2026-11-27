@@ -1,4 +1,5 @@
 [env]
+INKDROP_MCP_ENTRY = "{{config_root}}/dist/index.js"
 INKDROP_LOCAL_SERVER_URL = "http://localhost:19841"
 INKDROP_LOCAL_USERNAME = "foo@bar.com"
 INKDROP_LOCAL_PASSWORD = "bar"
