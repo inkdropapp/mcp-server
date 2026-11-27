@@ -3,6 +3,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
+import { trackAgentSession } from './client/agent-session.js'
 import { registerFileTools } from './features/files/tools.js'
 import { registerNotebookTools } from './features/notebooks/tools.js'
 import { registerNoteResource } from './features/notes/resource.js'
@@ -19,6 +20,8 @@ registerNoteTools(server)
 registerTagTools(server)
 registerNotebookTools(server)
 registerFileTools(server)
+
+trackAgentSession(server.server, process.stdin)
 
 try {
   await server.connect(new StdioServerTransport())

@@ -17,6 +17,9 @@ importers:
       ajv:
         specifier: ^8.20.0
         version: 8.20.0
+      inkdrop-consts:
+        specifier: ^3.2.3
+        version: 3.2.3
       inkdrop-model:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
@@ -919,6 +922,9 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
+
+  inkdrop-consts@3.2.3:
+    resolution: {integrity: sha512-U4nsS3O/ahZubgXmPOuFoDp62lI1D/riJq+Eu3gPkCRjRPVBMevGRX4lH1n9kp+s1hQmij48NaQgVFpQBDzD+A==}
 
   inkdrop-model@3.0.1:
     resolution: {integrity: sha512-yHIqghem61cUrEyZRSdJ4fg3jsyg2Zig4e+OkKiViD4fykMZ6eUky7GpIIMLUZ0StY58wk6BSzzT7vrT3QXEnw==}
@@ -1976,6 +1982,8 @@ snapshots:
   imurmurhash@0.1.4: {}
 
   inherits@2.0.4: {}
+
+  inkdrop-consts@3.2.3: {}
 
   inkdrop-model@3.0.1(ajv@8.20.0):
     optionalDependencies:
