@@ -6,7 +6,7 @@ const config = {
   password: process.env.INKDROP_LOCAL_PASSWORD
 }
 
-const AGENT_SESSION_PATH = '/agent-session'
+const AGENT_SESSION_PATH = '/agent/session'
 const AGENT_SESSION_SIGNAL_TIMEOUT_MS = 3000
 
 function getRequestHeaders() {
