@@ -1,6 +1,7 @@
 minimumReleaseAgeExclude:
   - '@inkdropapp/*'
   - inkdrop-model
+  - inkdrop-consts
   - '@nkzw/oxlint-config'
   - 'oxlint'
   - '@oxlint/*'
