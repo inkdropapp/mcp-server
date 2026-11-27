@@ -1,0 +1,4 @@
+[env]
+INKDROP_LOCAL_SERVER_URL = "http://localhost:19841"
+INKDROP_LOCAL_USERNAME = "foo@bar.com"
+INKDROP_LOCAL_PASSWORD = "bar"
